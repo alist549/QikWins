@@ -23,8 +23,9 @@ async function call(p, { method = "GET", body, token } = {}) {
   return res.json();
 }
 
+const bots = [];
+
 async function startBots() {
-  const bots = [];
   for (let i = 0; i < BOTS.length; i++) {
     const { token } = await call("/auth/demo", { method: "POST", body: { name: BOTS[i], phone: `+2637700001${String(i).padStart(2, "0")}`, over18: true } });
     bots.push(token);
@@ -70,51 +71,92 @@ async function waitFor(fn, timeout = 90000) {
   const stopBots = await startBots();
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: "light" });
-  const shot = async (name, opts = {}) => {
-    await sleep(700);
-    await page.screenshot({ path: path.join(OUT, `${name}.png`), ...opts });
-    console.log("saved", name);
+  let n = 0;
+  const shot = async (name, { wait = 700, target = page } = {}) => {
+    await sleep(wait);
+    n += 1;
+    const file = `${String(n).padStart(2, "0")}-${name}.png`;
+    await target.screenshot({ path: path.join(OUT, file) });
+    console.log("saved", file);
   };
+  const result = () => page.locator('[aria-live="polite"]').waitFor({ timeout: 60000 });
 
+  // Lobby, signed out, then the demo sign-in.
   await page.goto(WEB);
-  await page.getByText("Beat people,").waitFor();
-  await shot("01-landing", { fullPage: true });
-
-  await page.getByText("Play the free demo").click();
+  await page.getByText("All games").waitFor();
+  await shot("lobby", { wait: 1500 });
+  await page.getByRole("link", { name: "Play free" }).click();
   await page.getByPlaceholder("Tendai").fill("Tendai");
   await page.getByPlaceholder("+263 77 123 4567").fill("+263 77 123 4567");
   await page.getByRole("checkbox").check();
-  await shot("02-sign-in");
+  await shot("sign-in");
   await page.getByRole("button", { name: "Start playing" }).click();
-  await page.getByText("pick a game").waitFor();
+  await page.getByText("All games").waitFor();
   await waitFor(async () => (await call("/games/hop-off")).riders > 3);
-  await shot("03-lobby");
+  await page.locator("#games").scrollIntoViewIfNeeded();
+  await page.mouse.wheel(0, 260);
+  await shot("lobby-games", { wait: 1200 });
+
+  // 7x: take a seat, two players join, demo players fill the rest, roll.
+  await page.goto(`${WEB}/play/seven`);
+  await page.getByRole("radio", { name: "$2.00" }).click();
+  await shot("7x-pick-stake");
+  await page.getByRole("button", { name: /Take a seat/ }).click();
+  await page.getByText("Filling the table").waitFor();
+  for (const token of bots.slice(0, 3)) await call("/games/seven/join", { method: "POST", token, body: { stake: 200 } });
+  await shot("7x-filling-table", { wait: 900 });
+  await page.getByText("your total").waitFor({ timeout: 30000 });
+  await shot("7x-rolling", { wait: 1200 });
+  await page.getByRole("button", { name: /Re-roll all 3/ }).click();
+  await shot("7x-re-rolled", { wait: 1200 });
+  await result();
+  await shot("7x-result", { wait: 3000 });
+
+  // x2: find an opponent and play rock-paper-scissors to the end.
+  await page.goto(`${WEB}/play/double`);
+  await page.getByRole("radio", { name: "$2.00" }).click();
+  await shot("x2-pick-stake");
+  await page.getByRole("button", { name: /Find opponent/ }).click();
+  await page.getByText("Finding an opponent").waitFor();
+  await shot("x2-finding-opponent", { wait: 900 });
+  await page.getByText("Pick your move").waitFor({ timeout: 30000 });
+  await shot("x2-your-move");
+  let throws = 0;
+  while (!(await page.locator('[aria-live="polite"]').isVisible())) {
+    const btn = page.getByRole("button", { name: pick(["rock", "paper", "scissors"]), exact: true });
+    if (await btn.isEnabled().catch(() => false)) {
+      await btn.click().catch(() => {});
+      throws += 1;
+      if (throws === 1) {
+        await page.getByText(/THE THROW|TIE/).waitFor({ timeout: 20000 });
+        await shot("x2-throw-revealed", { wait: 300 });
+      }
+    }
+    await sleep(500);
+  }
+  await shot("x2-result", { wait: 3000 });
 
   // Hop Off: board with $2 and ride.
-  await page.getByText("Hop Off").first().click();
+  await page.goto(`${WEB}/play/hop-off`);
   await waitFor(async () => {
     const s = await call("/games/hop-off");
     return s.phase === "boarding" && s.endsAt - Date.now() > 5000 && s.riders >= 6;
   });
   await page.getByRole("radio", { name: "$2.00" }).click();
-  await shot("04-hop-off-boarding");
-  await page.getByRole("button", { name: /Board for/ }).click();
-  await page.getByText("You're aboard").waitFor();
-  await waitFor(async () => {
-    const s = await call("/games/hop-off");
-    return s.phase !== "boarding";
-  });
-  const riding = await call("/games/hop-off");
-  if (riding.phase === "riding") {
+  await shot("hop-off-boarding");
+  await page.getByRole("button", { name: /Board ·/ }).click();
+  await page.getByText(/Aboard ·/).waitFor();
+  await waitFor(async () => (await call("/games/hop-off")).phase !== "boarding");
+  if ((await call("/games/hop-off")).phase === "riding") {
     await sleep(2600);
-    await shot("05-hop-off-riding");
-    const getOff = page.getByRole("button", { name: /Ndiburuke!/ });
-    if (await getOff.isVisible()) await getOff.click();
+    await shot("hop-off-riding", { wait: 0 });
+    const getOff = page.locator("button.qw-pulse");
+    if (await getOff.isVisible()) await getOff.click({ force: true, timeout: 3000 }).catch(() => {});
   }
-  await page.locator('[aria-live="polite"]').waitFor({ timeout: 60000 });
-  await shot("06-hop-off-result");
+  await result();
+  await shot("hop-off-result", { wait: 3000 });
 
-  // Underdog: back side A with $1.
+  // Underdog: back side A.
   await page.goto(`${WEB}/play/underdog`);
   await waitFor(async () => {
     const s = await call("/games/underdog");
@@ -123,26 +165,23 @@ async function waitFor(fn, timeout = 90000) {
   await page.getByText("Side A").click();
   await page.getByRole("button", { name: /Back .* with/ }).click();
   await page.getByText(/You've backed/).waitFor();
-  await shot("07-underdog-open");
-  await page.locator('[aria-live="polite"]').waitFor({ timeout: 60000 });
-  await shot("08-underdog-result");
+  await shot("underdog-backed");
+  await result();
+  await shot("underdog-result", { wait: 3000 });
 
   await page.goto(`${WEB}/fair`);
-  await page.getByRole("button", { name: "Verify this round" }).first().click();
-  await page.getByText("Verified: seed matches").first().waitFor();
-  await shot("09-results-log");
+  await page.getByText("Best roll").first().waitFor();
+  await shot("results-log");
 
   await page.goto(`${WEB}/play-safe`);
   await page.getByText("Take a break").waitFor();
-  await shot("10-play-safe");
+  await shot("account-play-safe");
 
   // Dark mode, as on a phone set to dark.
   const dark = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: "dark" });
   await dark.goto(WEB);
-  await dark.getByText("Beat people,").waitFor();
-  await sleep(700);
-  await dark.screenshot({ path: path.join(OUT, "11-landing-dark.png") });
-  console.log("saved", "11-landing-dark");
+  await dark.getByText("All games").waitFor();
+  await shot("lobby-dark", { wait: 1500, target: dark });
 
   stopBots();
   await browser.close();

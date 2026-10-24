@@ -28,8 +28,10 @@ function attachSocket(server, games) {
     for (const s of sockets) s.emit(`${game}:state`, games[game].state(s.data.userId));
   };
   const notify = (userId, event, data) => io.to(`user:${userId}`).emit(event, data);
+  // Lobby counters (waiting players, live tables) go to everyone.
+  const broadcast = (event, data) => io.emit(event, data);
 
-  return { io, publisher, notify };
+  return { io, publisher, notify, broadcast };
 }
 
 module.exports = { attachSocket };

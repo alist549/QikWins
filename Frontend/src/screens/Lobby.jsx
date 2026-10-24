@@ -1,79 +1,68 @@
-import { Link, Navigate } from "react-router-dom";
-import { ChevronRight, ShieldCheck, HeartHandshake } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Eye, Users, BadgeCheck } from "lucide-react";
 import Page from "../components/Page";
-import { useSession } from "../contexts/SessionContext";
-import { useCountdown, useGame } from "../lib/useGame";
-import { money } from "../lib/money";
+import HeroCarousel from "../components/HeroCarousel";
+import WinsTicker from "../components/WinsTicker";
+import GameTile from "../components/GameTile";
+import { useGame } from "../lib/useGame";
+import { useLobby } from "../lib/usePersonal";
+import { CATEGORIES, GAMES, inCategory } from "../lib/games";
 
-const HOP_PHASE = { boarding: "Boarding now", riding: "On the road", settled: "Paying out" };
-const DOG_PHASE = { open: "Open now", revealed: "Revealing" };
-
-function GameCard({ to, name, pitch, phase, pool, people, endsAt }) {
-  const seconds = useCountdown(endsAt);
-  return (
-    <Link to={to} className="block rounded-3xl bg-surface p-5 hover:opacity-90 transition">
-      <div className="flex items-center justify-between">
-        <div className="text-xl font-bold tracking-tight">{name}</div>
-        <ChevronRight size={20} className="text-muted" />
-      </div>
-      <p className="mt-1 text-muted text-[15px]">{pitch}</p>
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
-        <span className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full bg-bg font-semibold whitespace-nowrap">
-          <span className="w-2 h-2 rounded-full bg-brand animate-pulse" aria-hidden />
-          {phase || "Connecting"}
-          {seconds > 0 && <span className="text-muted tabular whitespace-nowrap">· {seconds}s</span>}
-        </span>
-        <span className="text-muted tabular">
-          {money(pool ?? 0)} pool · {people ?? 0} playing
-        </span>
-      </div>
-    </Link>
-  );
-}
-
+// The lobby, open to everyone: banners, live wins, and every game as a tile.
 function Lobby() {
-  const { user, ready } = useSession();
   const [hop] = useGame("hop-off");
   const [dog] = useGame("underdog");
-  if (ready && !user) return <Navigate to="/sign-in" replace />;
+  const duel = useLobby("double");
+  const table = useLobby("seven");
+  const [category, setCategory] = useState("all");
+  const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
+  const live = {
+    "hop-off": hop && { pool: hop.pool, people: hop.riders },
+    underdog: dog && { pool: dog.pool, people: dog.players },
+    double: duel && { people: sum(duel.waiting) + duel.live * 2 },
+    seven: table && { people: sum(table.waiting) + table.live * table.seats },
+  };
 
   return (
     <Page>
-      <h1 className="pt-2 text-[28px] font-extrabold tracking-[-0.03em]">
-        {user ? `Hi ${user.name.split(" ")[0]}, pick a game` : "Pick a game"}
-      </h1>
-      <p className="text-muted">Live rounds, real opponents, one shared pool.</p>
-      <div className="mt-5 grid gap-3">
-        <GameCard
-          to="/play/hop-off"
-          name="Hop Off"
-          pitch="Get off before the checkpoint. Ride longer, win a bigger share."
-          phase={hop && HOP_PHASE[hop.phase]}
-          pool={hop?.pool}
-          people={hop?.riders}
-          endsAt={hop?.endsAt}
-        />
-        <GameCard
-          to="/play/underdog"
-          name="Underdog"
-          pitch="The side with less money behind it wins."
-          phase={dog && DOG_PHASE[dog.phase]}
-          pool={dog?.pool}
-          people={dog?.players}
-          endsAt={dog?.endsAt}
-        />
+      <HeroCarousel />
+      <div className="mt-3">
+        <WinsTicker />
       </div>
-      <div className="mt-6 grid grid-cols-2 gap-3">
-        <Link to="/fair" className="rounded-3xl border border-line p-4 hover:bg-surface">
-          <ShieldCheck size={22} className="text-brand" />
-          <div className="mt-2 font-semibold">Results log</div>
-          <div className="text-sm text-muted">Every pool, fee and payout</div>
-        </Link>
-        <Link to="/play-safe" className="rounded-3xl border border-line p-4 hover:bg-surface">
-          <HeartHandshake size={22} className="text-brand" />
-          <div className="mt-2 font-semibold">Play safe</div>
-          <div className="text-sm text-muted">Limits, breaks and pauses</div>
-        </Link>
+
+      <Link to="/why" className="mt-3 grid grid-cols-3 gap-2 text-[11px] font-bold text-center">
+        {[
+          [Users, "Play people, not the house", "from-[#00C2FF] to-[#007DFE]"],
+          [Eye, "Fee shown upfront", "from-[#22C55E] to-[#0EA5E9]"],
+          [BadgeCheck, "Every round published", "from-[#F59E0B] to-[#EC4899]"],
+        ].map(([Icon, label, tone]) => (
+          <span key={label} className={`rounded-2xl py-2.5 px-1.5 flex flex-col items-center gap-1 leading-tight text-white bg-gradient-to-br ${tone} shadow-float`}>
+            <Icon size={18} />
+            {label}
+          </span>
+        ))}
+      </Link>
+
+      <div id="games" className="mt-5 flex gap-2 overflow-x-auto -mx-4 px-4 pb-1" role="tablist">
+        {CATEGORIES.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            role="tab"
+            aria-selected={category === c.id}
+            onClick={() => setCategory(c.id)}
+            className={`h-9 px-4 rounded-full text-sm font-bold whitespace-nowrap transition ${category === c.id ? `bg-gradient-to-r ${c.tone} text-white shadow-float` : "bg-surface"}`}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-x-3 gap-y-4">
+        {GAMES.filter((g) => inCategory(g, category)).map((g) => (
+          <GameTile key={g.id} game={g} live={live[g.id]} />
+        ))}
       </div>
     </Page>
   );

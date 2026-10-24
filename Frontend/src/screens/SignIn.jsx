@@ -24,7 +24,7 @@ function SignIn() {
     try {
       const data = await api("/auth/demo", { method: "POST", body: { name, phone, over18 } });
       signIn(data.token, data.user);
-      navigate("/play", { replace: true });
+      navigate("/", { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {

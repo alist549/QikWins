@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
 import Page from "../components/Page";
 import Button from "../components/Button";
+import WinBurst from "../components/WinBurst";
 import StakeChips from "../components/StakeChips";
 import Stat from "../components/Stat";
 import { useSession } from "../contexts/SessionContext";
@@ -19,17 +20,17 @@ function Side({ label, side, picked, winner, revealed, total, count, onPick, dis
       onClick={onPick}
       disabled={disabled}
       aria-pressed={picked}
-      className={`relative flex-1 min-h-[150px] rounded-[28px] p-4 text-left flex flex-col justify-between transition ${
-        won ? "bg-brand text-white" : picked ? "bg-primary text-on-primary" : "bg-surface"
-      } ${lost ? "opacity-50" : ""} ${disabled && !revealed ? "cursor-default" : ""}`}
+      className={`relative flex-1 min-h-[170px] rounded-[28px] p-4 text-left flex flex-col justify-between text-white bg-gradient-to-br transition-all duration-300 shadow-float ${
+        side === "a" ? "from-[#5B21B6] to-[#8B5CF6]" : "from-[#BE185D] to-[#F472B6]"
+      } ${picked ? "ring-4 ring-[#FACC15] scale-[1.02]" : ""} ${won ? "ring-4 ring-white scale-[1.04]" : ""} ${lost ? "opacity-40 grayscale" : ""} ${disabled && !revealed ? "cursor-default" : ""}`}
     >
       <span className="flex items-center justify-between gap-2">
         <span className="text-xs font-semibold uppercase tracking-wide opacity-70">{side === "a" ? "Side A" : "Side B"}</span>
-        {won && <span className="text-xs font-bold bg-white text-brand rounded-full px-2.5 py-1">Wins</span>}
+        {won && <span className="text-xs font-extrabold bg-white text-black rounded-full px-2.5 py-1 animate-pop">WINS</span>}
       </span>
-      <span className="text-[28px] leading-tight font-extrabold tracking-tight">{label}</span>
+      <span className="text-[30px] leading-tight font-extrabold tracking-tight drop-shadow">{label}</span>
       <span className="text-sm opacity-80 tabular">
-        {revealed ? `${money(total)} · ${count} ${count === 1 ? "player" : "players"}` : picked ? "Your side" : "Tap to back"}
+        {revealed ? `${money(total)} · ${count}` : picked ? "Your side ✓" : "Tap to pick"}
       </span>
     </button>
   );
@@ -44,16 +45,27 @@ function Underdog() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const seconds = useCountdown(state?.endsAt);
+  const [burst, setBurst] = useState(null);
+  const celebrated = useRef(null);
 
   useEffect(() => {
     setSide(null);
     setError("");
   }, [state?.roundId]);
 
-  if (ready && !user) return <Navigate to="/sign-in" replace />;
-
   const you = state?.you;
   const revealed = state?.phase === "revealed";
+  useEffect(() => {
+    if (!revealed || !you || celebrated.current === state.roundId) return;
+    celebrated.current = state.roundId;
+    if (you.payout > you.stake) {
+      setBurst(you.payout - you.stake);
+      const id = setTimeout(() => setBurst(null), 2600);
+      return () => clearTimeout(id);
+    }
+  }, [revealed, you, state?.roundId]);
+
+  if (ready && !user) return <Navigate to="/sign-in" replace />;
   const chosen = you?.side || side;
 
   const back = async () => {
@@ -73,15 +85,16 @@ function Underdog() {
 
   return (
     <Page title="Underdog" back="/play">
-      <p className="text-muted">Back a side. When the clock stops, the side with less money behind it wins.</p>
-      <div className="mt-4 flex gap-3">
+      <div className="text-center text-sm font-extrabold uppercase tracking-wider text-muted">The smaller side wins</div>
+      <div className="relative mt-3 flex gap-3">
         <Side label={a} side="a" picked={chosen === "a"} winner={state?.winner} revealed={revealed} total={state?.totals?.a} count={state?.counts?.a} onPick={() => setSide("a")} disabled={revealed || Boolean(you)} />
+        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full bg-primary text-on-primary border-4 border-bg font-extrabold text-sm inline-flex items-center justify-center qw-pulse">VS</span>
         <Side label={b} side="b" picked={chosen === "b"} winner={state?.winner} revealed={revealed} total={state?.totals?.b} count={state?.counts?.b} onPick={() => setSide("b")} disabled={revealed || Boolean(you)} />
       </div>
 
       {revealed && (
-        <div className="mt-3 h-3 rounded-full bg-line overflow-hidden flex" aria-hidden>
-          <div className="h-full bg-fg transition-all duration-700" style={{ width: `${share * 100}%` }} />
+        <div className="mt-3 h-4 rounded-full bg-gradient-to-r from-[#BE185D] to-[#F472B6] overflow-hidden flex" aria-hidden>
+          <div className="h-full bg-gradient-to-r from-[#5B21B6] to-[#8B5CF6] transition-all duration-1000" style={{ width: `${share * 100}%` }} />
         </div>
       )}
 
@@ -90,7 +103,7 @@ function Underdog() {
         <Stat label="Players" value={state?.players ?? 0} />
         <Stat label={revealed ? "Next question" : "Closes in"} value={`${seconds}s`} accent />
       </div>
-      {!revealed && <p className="mt-2 text-xs text-muted">Side totals stay hidden until the clock stops, so nobody can just copy the smaller side.</p>}
+      {!revealed && <p className="mt-2 text-xs text-muted text-center">Totals hidden until the clock stops</p>}
 
       <div className="mt-4 flex flex-col gap-3">
         {!revealed && (
@@ -104,7 +117,7 @@ function Underdog() {
         )}
 
         {revealed && (
-          <div className="rounded-3xl bg-primary text-on-primary p-5 animate-pop" aria-live="polite">
+          <div className={`rounded-3xl p-5 animate-pop ${you && you.payout === 0 ? "bg-[#DC2626] text-white qw-shake" : "bg-primary text-on-primary"}`} aria-live="polite">
             {state.winner ? (
               <div className="text-sm opacity-70">
                 {state.winner === "a" ? a : b} had less money behind it: {money(state.totals[state.winner])} against {money(state.totals[state.winner === "a" ? "b" : "a"])}.
@@ -113,7 +126,7 @@ function Underdog() {
               <div className="text-sm opacity-70">A tie or a one-sided round: everyone gets their stake back, no fee.</div>
             )}
             <div className="mt-1 text-2xl font-extrabold tracking-tight">
-              {you ? (you.payout > 0 ? `You get back ${money(you.payout)} (${money(you.payout - you.stake, { sign: true })})` : `The crowd agreed with you. You lose ${money(you.stake)}.`) : "Next question coming up"}
+              {you ? (you.payout > you.stake ? money(you.payout - you.stake, { sign: true }) : you.payout > 0 ? "Refunded" : "The crowd agreed with you!") : "Next question coming up"}
             </div>
             <div className="mt-2 text-sm opacity-70">
               Fee {money(state.result.fee)} ({percent(state.feeRate)} of the losing side) · {money(state.result.paidOut)} paid out
@@ -127,6 +140,7 @@ function Underdog() {
           </p>
         )}
       </div>
+      {burst && <WinBurst amount={burst} />}
     </Page>
   );
 }

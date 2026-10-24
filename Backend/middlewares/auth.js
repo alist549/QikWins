@@ -27,4 +27,10 @@ const requireUser = (store) => async (req, res, next) => {
   next();
 };
 
-module.exports = { signToken, verifyToken, requireUser };
+// Signed in or not: sets req.userId when a valid token is sent.
+const optionalUser = () => (req, res, next) => {
+  req.userId = verifyToken(tokenFrom(req));
+  next();
+};
+
+module.exports = { signToken, verifyToken, requireUser, optionalUser };

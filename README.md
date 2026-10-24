@@ -7,11 +7,23 @@ QikWins is a website of live pool games where players compete against each other
 
 This first version runs in **demo mode**: every player gets $100 of practice money and no real cash moves. It's built on the same stack and design as [QikDrive](https://github.com/alist549/QikDriveZw): React, Vite and Tailwind on the web, Node, Express, MongoDB and Socket.IO on the server, Inter, black and white with QikDrive blue.
 
-| Home | Hop Off, riding | Hop Off, result | Underdog | Results log |
+| Lobby | 7x, rolling | x2, throw | Hop Off, riding | Underdog |
 | --- | --- | --- | --- | --- |
-| ![](docs/screenshots/03-lobby.png) | ![](docs/screenshots/05-hop-off-riding.png) | ![](docs/screenshots/06-hop-off-result.png) | ![](docs/screenshots/08-underdog-result.png) | ![](docs/screenshots/09-results-log.png) |
+| ![](docs/screenshots/01-lobby.png) | ![](docs/screenshots/07-7x-re-rolled.png) | ![](docs/screenshots/12-x2-throw-revealed.png) | ![](docs/screenshots/15-hop-off-riding.png) | ![](docs/screenshots/18-underdog-result.png) |
 
 ## The games
+
+The lobby shows every game as an animated tile with its live player count. Four are playable in the demo; the rest are shown as coming soon.
+
+### 7x
+
+Eight players at the same stake roll three dice each, with one re-roll. The highest total takes the table: all eight stakes, less a 10% fee on the other seven, so a lone winner gets back about 7.3x. Tied winners split it. Players can leave for a full refund until the dice roll.
+
+### x2 (Double or Nothing)
+
+Two players at the same stake play rock-paper-scissors, 10 seconds a throw, ties replayed. First to 2 wins takes both stakes, less a 10% fee from the loser's stake. Cancel for a full refund while waiting for an opponent.
+
+In the demo, if nobody else is waiting at your stake, labelled demo players ("Zola (bot)") fill the empty seats in 7x and x2 after a few seconds. Set `DEMO_OPPONENTS=off` to turn them off.
 
 ### Hop Off
 
@@ -60,7 +72,8 @@ Backend/
   services/payouts.js pool maths in whole cents (nothing created or lost)
   services/fair.js    commit-reveal seeds for Hop Off checkpoints
   services/store.js   players and the results log (MongoDB or in memory)
-  games/              Hop Off and Underdog round engines
+  games/              Hop Off, Underdog, x2 and 7x engines
+  services/bots.js    labelled demo players for empty x2 and 7x seats
   app.js, socket.js   HTTP API and live updates
 Frontend/             React website
 e2e/                  Playwright playthrough and screenshots

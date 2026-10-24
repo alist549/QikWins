@@ -5,9 +5,67 @@ import { api } from "../lib/api";
 import { money, percent } from "../lib/money";
 
 const TABS = [
+  ["seven", "7x"],
+  ["double", "x2"],
   ["hop-off", "Hop Off"],
   ["underdog", "Underdog"],
 ];
+
+const HAND = { rock: "✊", paper: "✋", scissors: "✌️" };
+
+function DoubleRound({ r }) {
+  const [a, b] = r.players;
+  return (
+    <li className="rounded-3xl border border-line p-4">
+      <div className="flex items-center justify-between">
+        <span className="font-semibold">
+          {a.name} {a.wins}–{b.wins} {b.name}
+        </span>
+        <span className="text-xs text-muted">{new Date(r.settledAt).toLocaleTimeString()}</span>
+      </div>
+      <div className="mt-1 text-sm text-muted tabular">
+        Stake {money(r.stake)} each · pot {money(r.pool)} · fee {money(r.fee)} · winner paid {money(r.paidOut)}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5 text-lg">
+        {r.throws.map((t, i) => (
+          <span key={i} className="h-8 px-2 rounded-full bg-surface inline-flex items-center gap-1">
+            {HAND[t.moves[0]]}
+            <span className="text-[10px] font-bold text-muted">v</span>
+            {HAND[t.moves[1]]}
+          </span>
+        ))}
+      </div>
+    </li>
+  );
+}
+
+function SevenRound({ r }) {
+  const ranked = [...r.players].sort((x, y) => y.total - x.total);
+  return (
+    <li className="rounded-3xl border border-line p-4">
+      <div className="flex items-center justify-between">
+        <span className="font-semibold">Best roll {ranked[0]?.total}</span>
+        <span className="text-xs text-muted">{new Date(r.settledAt).toLocaleTimeString()}</span>
+      </div>
+      <div className="mt-1 text-sm text-muted tabular">
+        {r.players.length} players · {money(r.stake)} each · table {money(r.pool)} · fee {money(r.fee)} · paid {money(r.paidOut)}
+      </div>
+      <ul className="mt-2 text-sm divide-y divide-line">
+        {ranked.map((x, i) => (
+          <li key={i} className="py-1.5 flex justify-between tabular">
+            <span>
+              {x.name} · {x.dice.join(" + ")} = {x.total}
+              {x.rerolled ? " (re-rolled)" : ""}
+            </span>
+            <span className={x.payout > 0 ? "font-semibold" : "text-muted"}>{money(x.payout)}</span>
+          </li>
+        ))}
+      </ul>
+    </li>
+  );
+}
+
+const ROUND = { "hop-off": HopOffRound, underdog: UnderdogRound, double: DoubleRound, seven: SevenRound };
 
 function HopOffRound({ r }) {
   const [check, setCheck] = useState(null);
@@ -77,7 +135,8 @@ function UnderdogRound({ r }) {
 // The public settlement log: every finished round, its pool, the fee and
 // every payout. Hop Off rounds can be re-checked from their revealed seed.
 function Fairness() {
-  const [tab, setTab] = useState("hop-off");
+  const [tab, setTab] = useState("seven");
+  const Round = ROUND[tab];
   const [rounds, setRounds] = useState(null);
 
   useEffect(() => {
@@ -88,14 +147,14 @@ function Fairness() {
   }, [tab]);
 
   return (
-    <Page title="Results log" back="/play">
+    <Page title="Results log" back="/">
       <p className="text-muted">
         Every finished round, with the pool, the fee and every payout. For Hop Off, the checkpoint&apos;s fingerprint (hash) is shown before boarding; the seed is revealed after, so you
         can check nothing changed.
       </p>
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex gap-2 overflow-x-auto">
         {TABS.map(([key, label]) => (
-          <button key={key} type="button" onClick={() => setTab(key)} className={`h-9 px-4 rounded-full text-sm font-semibold ${tab === key ? "bg-primary text-on-primary" : "bg-surface"}`}>
+          <button key={key} type="button" onClick={() => setTab(key)} className={`h-9 px-4 rounded-full text-sm font-semibold ${tab === key ? "bg-gradient-to-r from-[#7C3AED] to-[#EC4899] text-white" : "bg-surface"}`}>
             {label}
           </button>
         ))}
@@ -103,7 +162,9 @@ function Fairness() {
       <ul className="mt-4 flex flex-col gap-3">
         {rounds === null && <li className="text-muted">Loading…</li>}
         {rounds?.length === 0 && <li className="text-muted">No finished rounds yet.</li>}
-        {rounds?.map((r) => (tab === "hop-off" ? <HopOffRound key={r.id} r={r} /> : <UnderdogRound key={r.id} r={r} />))}
+        {rounds?.map((r) => (
+          <Round key={r.id} r={r} />
+        ))}
       </ul>
       <details className="mt-6 text-sm text-muted">
         <summary className="cursor-pointer font-medium text-fg">Check a round yourself</summary>

@@ -92,4 +92,28 @@ function settleUnderdog(bets, { feeRate }) {
   };
 }
 
-module.exports = { splitByWeight, settleHopOff, settleUnderdog };
+// Double or Nothing: the winner gets both stakes back less a fee taken from
+// the loser's stake.
+function settleDuel(stake, { feeRate }) {
+  const fee = feeOf(stake, feeRate);
+  return { fee, winnerPayout: 2 * stake - fee };
+}
+
+// 7x. players: [{ userId, total }], all at the same stake. The highest total
+// wins; tied winners split the losers' stakes (after the fee) equally.
+function settleSeven(players, { stake, feeRate }) {
+  const best = Math.max(...players.map((p) => p.total));
+  const winners = players.filter((p) => p.total === best);
+  const losersPot = stake * (players.length - winners.length);
+  const fee = feeOf(losersPot, feeRate);
+  const shares = splitByWeight(losersPot - fee, winners.map(() => 1));
+  const shareOf = new Map(winners.map((p, i) => [p, shares[i]]));
+  return {
+    best,
+    winners,
+    fee,
+    payouts: players.map((p) => ({ userId: p.userId, payout: p.total === best ? stake + shareOf.get(p) : 0 })),
+  };
+}
+
+module.exports = { splitByWeight, settleHopOff, settleUnderdog, settleDuel, settleSeven };

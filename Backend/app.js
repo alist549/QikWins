@@ -3,21 +3,22 @@ const cors = require("cors");
 const morgan = require("morgan");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const { COMMON, HOP_OFF, UNDERDOG } = require("./config/games");
+const { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN } = require("./config/games");
 const { normalizePhone } = require("./utils/phone");
-const { signToken, requireUser } = require("./middlewares/auth");
+const { signToken, requireUser, optionalUser } = require("./middlewares/auth");
 const { GameError } = require("./games/hopOff");
 const fair = require("./services/fair");
 
 // The HTTP API. Players act through these routes; live round updates go
 // out over Socket.IO (socket.js).
-function createApp({ store, hopOff, underdog }) {
+function createApp({ store, hopOff, underdog, double, seven }) {
   const app = express();
   if (process.env.ENVIRONMENT !== "test") app.use(morgan("dev"));
   app.use(cors());
   app.use(express.json({ limit: "20kb" }));
 
   const auth = requireUser(store);
+  const maybe = optionalUser();
   const valid = (req, res) => {
     const errors = validationResult(req);
     if (errors.isEmpty()) return true;
@@ -47,6 +48,8 @@ function createApp({ store, hopOff, underdog }) {
       demoBalance: COMMON.DEMO_BALANCE,
       hopOff: { stops: HOP_OFF.STOPS, feeRate: HOP_OFF.FEE_RATE, boardingMs: HOP_OFF.BOARDING_MS, stopMs: HOP_OFF.STOP_MS },
       underdog: { feeRate: UNDERDOG.FEE_RATE, openMs: UNDERDOG.OPEN_MS },
+      double: { feeRate: DOUBLE.FEE_RATE, winsNeeded: DOUBLE.WINS_NEEDED, moveMs: DOUBLE.MOVE_MS },
+      seven: { feeRate: SEVEN.FEE_RATE, seats: SEVEN.SEATS, rollMs: SEVEN.ROLL_MS },
     })
   );
 
@@ -107,9 +110,23 @@ function createApp({ store, hopOff, underdog }) {
     play((req) => underdog.stake(req.user.id, { side: req.body.side, stake: Number(req.body.stake) }))
   );
 
+  // Double or Nothing: queue at a stake, then rock-paper-scissors.
+  app.get("/games/double", maybe, (req, res) => res.json(double.state(req.userId)));
+  app.post("/games/double/queue", auth, play((req) => double.enqueue(req.user.id, { stake: Number(req.body.stake) })));
+  app.post("/games/double/cancel", auth, play((req) => double.cancel(req.user.id)));
+  app.post("/games/double/move", auth, play(async (req) => double.move(req.user.id, req.body.move)));
+  app.post("/games/double/dismiss", auth, play(async (req) => double.dismiss(req.user.id)));
+
+  // 7x: eight to a table, three dice, one re-roll.
+  app.get("/games/seven", maybe, (req, res) => res.json(seven.state(req.userId)));
+  app.post("/games/seven/join", auth, play((req) => seven.join(req.user.id, { stake: Number(req.body.stake) })));
+  app.post("/games/seven/leave", auth, play((req) => seven.leave(req.user.id)));
+  app.post("/games/seven/reroll", auth, play(async (req) => seven.reroll(req.user.id)));
+  app.post("/games/seven/dismiss", auth, play(async (req) => seven.dismiss(req.user.id)));
+
   // The public settlement log.
   app.get(
-    "/rounds/:game(hop-off|underdog)",
+    "/rounds/:game(hop-off|underdog|double|seven)",
     asyncHandler(async (req, res) => {
       const limit = Math.min(Number(req.query.limit) || 20, 100);
       res.json({ rounds: await store.listRounds(req.params.game, limit) });
