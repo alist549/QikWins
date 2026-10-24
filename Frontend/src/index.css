@@ -64,12 +64,13 @@ body {
     radial-gradient(45% 40% at 80% 85%, rgb(var(--glow-a) / 0.35), transparent 70%),
     radial-gradient(40% 35% at 20% 90%, rgb(var(--glow-b) / 0.3), transparent 70%),
     rgb(var(--bg));
-  animation: qw-drift 24s ease-in-out infinite alternate;
+  animation: qw-drift 30s ease-in-out infinite alternate;
+  will-change: transform;
 }
 @keyframes qw-drift {
-  0% { transform: translate(0, 0) rotate(0deg); filter: hue-rotate(0deg); }
-  50% { transform: translate(3%, -2%) rotate(4deg); filter: hue-rotate(18deg); }
-  100% { transform: translate(-3%, 2%) rotate(-3deg); filter: hue-rotate(-15deg); }
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(3%, -2%, 0) rotate(4deg); }
+  100% { transform: translate3d(-3%, 2%, 0) rotate(-3deg); }
 }
 
 ::selection {
@@ -148,3 +149,12 @@ svg [class*="qw-"] { transform-box: fill-box; transform-origin: center; }
 
 /* Lobby tiles carry their own win badge, so the art drops its small print. */
 .tile-art .qw-tagline { display: none; }
+
+/* Small copies of the art (the desktop game list) stay still, so nothing
+   animates beside a game that is being played. */
+.qw-still, .qw-still * { animation: none !important; }
+/* On a computer the lobby shows a dozen tiles at once; animating them all
+   costs frames, so a tile comes alive when the pointer is on it. */
+@media (hover: hover) {
+  .tile-art:not(:hover) * { animation-play-state: paused; }
+}

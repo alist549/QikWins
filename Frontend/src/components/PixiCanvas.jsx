@@ -16,7 +16,7 @@ function PixiCanvas({ scene, props, className = "", label }) {
     (async () => {
       const PIXI = await import("pixi.js");
       app = new PIXI.Application();
-      await app.init({ resizeTo: host.current, backgroundAlpha: 0, antialias: true, resolution: Math.min(window.devicePixelRatio || 1, 2), autoDensity: true });
+      await app.init({ resizeTo: host.current, backgroundAlpha: 0, antialias: true, resolution: Math.min(window.devicePixelRatio || 1, 1.5), autoDensity: true });
       if (destroyed) {
         app.destroy(true, { children: true });
         return;

@@ -83,7 +83,7 @@ function Race({ id }) {
           <PixiCanvas scene={scene} label={`${theme.name} track`} props={{ phase, winning: win, roundId: state?.roundId, endsAt: state?.endsAt, runMs, selected: racer }} />
         </div>
         <div className="absolute top-3 left-3 right-3 flex justify-between z-10 pointer-events-none">
-          <span className="h-8 px-3 rounded-full bg-black/50 text-white text-xs font-bold inline-flex items-center gap-1.5 backdrop-blur">
+          <span className="h-8 px-3 rounded-full bg-black/60 text-white text-xs font-bold inline-flex items-center gap-1.5">
             {phase === "spinning" ? <Flag size={14} /> : <Timer size={14} />}
             {LABEL[phase] || "Loading"} {phase !== "spinning" && <span key={seconds} className="tabular qw-count inline-block">{seconds}s</span>}
           </span>

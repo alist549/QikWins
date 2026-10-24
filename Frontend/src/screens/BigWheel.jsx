@@ -79,7 +79,7 @@ function BigWheel() {
           <PixiCanvas scene={scene} label="The Big Wheel" props={{ phase, winning: win, selected: segment, spinMs: rules?.bigWheel?.spinMs }} />
         </div>
         <div className="absolute top-3 left-3 right-3 flex justify-between z-10 pointer-events-none">
-          <span className="h-8 px-3 rounded-full bg-black/40 text-white text-xs font-bold inline-flex items-center gap-1.5 backdrop-blur">
+          <span className="h-8 px-3 rounded-full bg-black/55 text-white text-xs font-bold inline-flex items-center gap-1.5">
             <Timer size={14} />
             {LABEL[phase] || "Loading"} {phase !== "spinning" && <span key={seconds} className="tabular qw-count inline-block">{seconds}s</span>}
           </span>
