@@ -1,32 +1,18 @@
 import { useEffect, useState } from "react";
 import { api } from "./api";
 
-// Real recent wins from every game's results log: who won, how much on top
-// of their stake, and the multiple of their stake they got back.
-const SOURCES = [
-  ["mega", "Mega Jackpot", (r) => r.players, 2], // big rounds: fetch fewer
-  ["big-wheel", "Big Wheel", (r) => r.bets],
-  ["last-standing", "Last Standing", (r) => r.players],
-  ["penalties", "Penalties", (r) => r.players],
-  ["seven", "7x", (r) => r.players],
-  ["double", "x2", (r) => r.players],
-  ["hop-off", "Hop Off", (r) => r.riders],
-  ["underdog", "Underdog", (r) => r.bets],
-];
+import { GAMES } from "./games";
+
+// Real recent wins from every game's results log (the server's /wins):
+// who won, how much on top of their stake, and the multiple they got back.
+// Tiny wins are left out of the feed when there are bigger ones to show.
+const NAMES = { mega: "Mega Jackpot", ...Object.fromEntries(GAMES.filter((g) => g.path).map((g) => [g.path.split("/").pop(), g.name])) };
 
 export async function loadWins() {
-  const lists = await Promise.all(SOURCES.map(([id, , , limit = 8]) => api(`/rounds/${id}?limit=${limit}`).catch(() => ({ rounds: [] }))));
-  const wins = [];
-  lists.forEach(({ rounds }, i) => {
-    const [, game, entries] = SOURCES[i];
-    rounds.forEach((r) =>
-      (entries(r) || []).forEach((x) => {
-        const stake = x.stake ?? r.stake;
-        if (x.payout > stake) wins.push({ name: x.name, amount: x.payout - stake, multiple: x.payout / stake, game, at: r.settledAt });
-      })
-    );
-  });
-  return wins.sort((a, b) => new Date(b.at) - new Date(a.at));
+  const { wins } = await api("/wins");
+  const named = wins.map((w) => ({ ...w, game: NAMES[w.game] || w.game }));
+  const big = named.filter((w) => w.amount >= 50 || w.multiple >= 3);
+  return big.length >= 4 ? big : named;
 }
 
 // One shared poll for every component that shows wins.

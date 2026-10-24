@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { ArrowLeft, Volume2, VolumeX, Wallet } from "lucide-react";
 import Logo from "./Logo";
@@ -25,11 +26,19 @@ const DESKTOP_LINKS = [
 //           and the jackpot on the right,
 //   "narrow": one centred column (forms and settings).
 // `track` is the background music for the screen ("lobby" or "game").
-function Page({ title, back, children, nav = true, track = "lobby", layout = "game" }) {
+// `glow` is the screen's two background colours as "r g b" strings.
+const LOBBY_GLOW = ["124 58 237", "0 125 254"];
+
+function Page({ title, back, children, nav = true, track = "lobby", layout = "game", glow = LOBBY_GLOW }) {
   const navigate = useNavigate();
   const { user } = useSession();
   const sound = useSoundEnabled();
   useTrack(track);
+  const [glowA, glowB] = glow;
+  useEffect(() => {
+    document.documentElement.style.setProperty("--glow-a", glowA);
+    document.documentElement.style.setProperty("--glow-b", glowB);
+  }, [glowA, glowB]);
   return (
     <div className="min-h-[100dvh] flex flex-col">
       <div className="bg-gradient-to-r from-[#7C3AED] via-[#EC4899] to-[#F97316] text-white text-center text-[11px] font-bold tracking-wide py-1 px-4">DEMO · PRACTICE MONEY · 18+</div>

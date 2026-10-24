@@ -89,7 +89,7 @@ function Double() {
   const waiting = state?.lobby?.waiting || {};
 
   return (
-    <Page title="x2 · Double or Nothing" back="/" track="game">
+    <Page title="x2 · Double or Nothing" back="/" track="game" glow={["0 194 255", "124 58 237"]}>
       {(status === "idle" || !state) && (
         <div className="flex flex-col gap-4 animate-sheet-up">
           <div className="relative h-48 rounded-[28px] overflow-hidden shadow-float">

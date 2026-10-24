@@ -121,7 +121,7 @@ function Penalties() {
   const you = table?.you;
 
   return (
-    <Page title="Penalties" back="/" track={status === "idle" ? "lobby" : "game"}>
+    <Page title="Penalties" back="/" glow={["22 163 74", "202 138 4"]} track={status === "idle" ? "lobby" : "game"}>
       {status === "idle" && (
         <div className="flex flex-col gap-4 animate-sheet-up">
           <div className="relative h-44 rounded-[28px] overflow-hidden shadow-float">

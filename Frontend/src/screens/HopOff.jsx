@@ -105,7 +105,7 @@ function HopOff() {
   const caughtMe = phase === "settled" && you && you.offAt == null;
 
   return (
-    <Page title="Hop Off" back="/" track="game">
+    <Page title="Hop Off" back="/" track="game" glow={["0 125 254", "0 194 255"]}>
       <div className="flex items-center gap-2">
         <div className="flex gap-1.5 overflow-x-auto flex-1 -ml-1 pl-1" role="radiogroup" aria-label="Route">
           {Object.entries(SKINS).map(([key, s]) => (

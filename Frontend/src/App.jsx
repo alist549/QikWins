@@ -11,6 +11,8 @@ import Seven from "./screens/Seven";
 import BigWheel from "./screens/BigWheel";
 import LastStanding from "./screens/LastStanding";
 import Penalties from "./screens/Penalties";
+import Race from "./screens/Race";
+import { RACES } from "./lib/races";
 
 function App() {
   return (
@@ -28,6 +30,9 @@ function App() {
         <Route path="/play/last-standing" element={<LastStanding />} />
         <Route path="/play/mega-jackpot" element={<LastStanding game="mega" />} />
         <Route path="/play/penalties" element={<Penalties />} />
+        {RACES.map((r) => (
+          <Route key={r.id} path={`/play/${r.id}`} element={<Race key={r.id} id={r.id} />} />
+        ))}
         <Route path="/fair" element={<Fairness />} />
         <Route path="/play-safe" element={<PlaySafe />} />
         <Route path="*" element={<Navigate to="/" replace />} />

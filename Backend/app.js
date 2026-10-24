@@ -4,7 +4,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, STANDING, MEGA, PENALTY } = require("./config/games");
+const { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, RACES, STANDING, MEGA, PENALTY } = require("./config/games");
 const { normalizePhone } = require("./utils/phone");
 const { signToken, requireUser, optionalUser } = require("./middlewares/auth");
 const { GameError } = require("./games/hopOff");
@@ -14,7 +14,7 @@ const fair = require("./services/fair");
 // out over Socket.IO (socket.js).
 // With `webDir` (the built website), the same server also serves the site,
 // so one free web service runs everything (see render.yaml).
-function createApp({ store, hopOff, underdog, double, seven, wheel, standing, mega, penalties, webDir }) {
+function createApp({ store, hopOff, underdog, double, seven, wheel, races = [], standing, mega, penalties, webDir }) {
   const app = express();
   if (process.env.ENVIRONMENT !== "test") app.use(morgan("dev"));
   app.use(cors());
@@ -59,6 +59,7 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, standing, me
       bigWheel: { feeRate: WHEEL.FEE_RATE, segments: WHEEL.SEGMENTS, openMs: WHEEL.OPEN_MS, spinMs: WHEEL.SPIN_MS },
       penalties: { feeRate: PENALTY.FEE_RATE, spots: PENALTY.SPOTS, kicksEach: PENALTY.KICKS_EACH, kickMs: PENALTY.KICK_MS, cupSeats: PENALTY.CUP_SEATS },
       lastStanding: { feeRate: STANDING.FEE_RATE, seats: STANDING.SEATS, pickMs: STANDING.PICK_MS, maxRounds: STANDING.MAX_ROUNDS },
+      races: Object.fromEntries(RACES.map((r) => [r.GAME, { racers: r.SEGMENTS, openMs: r.OPEN_MS, runMs: r.SPIN_MS, feeRate: r.FEE_RATE }])),
       mega: { feeRate: MEGA.FEE_RATE, seats: MEGA.SEATS, pickMs: MEGA.PICK_MS, maxRounds: MEGA.MAX_ROUNDS },
     })
   );
@@ -134,13 +135,14 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, standing, me
   app.post("/games/seven/reroll", auth, play(async (req) => seven.reroll(req.user.id)));
   app.post("/games/seven/dismiss", auth, play(async (req) => seven.dismiss(req.user.id)));
 
-  // Big Wheel: stake on any segments while the wheel is open.
-  if (wheel) {
-    app.get("/games/big-wheel", maybe, (req, res) => res.json(wheel.state(req.userId)));
+  // Big Wheel and the races: stake on a segment (or racer) while it's open.
+  for (const game of [wheel, ...races]) {
+    if (!game) continue;
+    app.get(`/games/${game.GAME}`, maybe, (req, res) => res.json(game.state(req.userId)));
     app.post(
-      "/games/big-wheel/stake",
+      `/games/${game.GAME}/stake`,
       auth,
-      play((req) => wheel.stake(req.user.id, { segment: Number(req.body.segment), stake: Number(req.body.stake) }))
+      play((req) => game.stake(req.user.id, { segment: Number(req.body.segment), stake: Number(req.body.stake) }))
     );
   }
 
@@ -165,9 +167,34 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, standing, me
     app.post("/games/penalties/dismiss", auth, play(async (req) => penalties.dismiss(req.user.id)));
   }
 
+  // Recent wins across every game, for the lobby ticker and the live wins
+  // panel: who won, how much on top of their stake, and the multiple.
+  // Built from the settlement log and cached for a few seconds.
+  const WIN_GAMES = ["mega", "big-wheel", "last-standing", "penalties", "seven", "double", "hop-off", "underdog", ...RACES.map((r) => r.GAME)];
+  let winsCache = { at: 0, wins: [] };
+  app.get(
+    "/wins",
+    asyncHandler(async (req, res) => {
+      if (Date.now() - winsCache.at > 5000) {
+        const wins = [];
+        for (const game of WIN_GAMES) {
+          for (const r of await store.listRounds(game, game === "mega" ? 2 : 6)) {
+            for (const x of r.bets || r.players || r.riders || []) {
+              const stake = x.stake ?? r.stake;
+              if (x.payout > stake) wins.push({ name: x.name, amount: x.payout - stake, multiple: x.payout / stake, game, at: r.settledAt });
+            }
+          }
+        }
+        wins.sort((a, b) => new Date(b.at) - new Date(a.at));
+        winsCache = { at: Date.now(), wins: wins.slice(0, 40) };
+      }
+      res.json({ wins: winsCache.wins });
+    })
+  );
+
   // The public settlement log.
   app.get(
-    "/rounds/:game(hop-off|underdog|double|seven|big-wheel|last-standing|mega|penalties)",
+    `/rounds/:game(hop-off|underdog|double|seven|big-wheel|last-standing|mega|penalties|${RACES.map((r) => r.GAME).join("|")})`,
     asyncHandler(async (req, res) => {
       const limit = Math.min(Number(req.query.limit) || 20, 100);
       res.json({ rounds: await store.listRounds(req.params.game, limit) });
@@ -187,8 +214,9 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, standing, me
   app.get("/fair/verify", (req, res) => {
     const { seed, hash, roundId } = req.query;
     if (!seed || !hash || !roundId) return res.status(400).json({ message: "Send seed, hash and roundId." });
-    const game = req.query.game === "big-wheel" ? "big-wheel" : "hop-off";
-    const stops = game === "big-wheel" ? WHEEL.SEGMENTS : HOP_OFF.STOPS;
+    const race = RACES.find((r) => r.GAME === req.query.game);
+    const game = race ? race.GAME : req.query.game === "big-wheel" ? "big-wheel" : "hop-off";
+    const stops = race ? race.SEGMENTS : game === "big-wheel" ? WHEEL.SEGMENTS : HOP_OFF.STOPS;
     const check = fair.verifyStop({ seed, hash, game, roundId, stops, stop: Number(req.query.stop) });
     res.json(check);
   });

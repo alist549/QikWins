@@ -69,7 +69,7 @@ function PlaySafe() {
         <div className="mt-2 flex gap-2">
           {["system", "light", "dark"].map((t) => (
             <button key={t} type="button" onClick={() => setTheme(t)} className={`h-9 px-4 rounded-full text-sm font-semibold capitalize ${theme === t ? "bg-primary text-on-primary" : "bg-surface"}`}>
-              {t === "system" ? "Match phone" : t}
+              {t === "system" ? "Match phone" : t === "dark" ? "night" : t}
             </button>
           ))}
         </div>

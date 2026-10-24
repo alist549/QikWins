@@ -1,6 +1,7 @@
 // Animated cover art for every game tile and banner. Plain SVG + CSS
 // (index.css "Game motion"), so it costs a few KB, not images.
 import { useId } from "react";
+import { RACES, raceById } from "../lib/races";
 
 // Gradient ids are made unique per copy: the same art can be on the page
 // twice (a tile and the desktop game list), and a hidden copy's gradient
@@ -339,6 +340,46 @@ function Mega() {
   );
 }
 
+// A race tile: lanes in the race's colours, its racers mid-race and a
+// chequered finish.
+function RaceArt({ id }) {
+  const race = raceById(id);
+  const hex = (n) => `#${n.toString(16).padStart(6, "0")}`;
+  const lanes = race.racers.slice(0, 6);
+  const h = 120 / lanes.length;
+  const shape = (r, x, y) => {
+    const c = hex(r.color);
+    if (race.racers[0].shape === "marble") return <circle cx={x} cy={y} r={h * 0.32} fill={c} stroke="#fff" strokeOpacity="0.5" />;
+    if (race.racers[0].shape === "rocket") return <polygon points={`${x - 14},${y - 5} ${x + 8},${y - 5} ${x + 16},${y} ${x + 8},${y + 5} ${x - 14},${y + 5}`} fill={c} />;
+    if (race.racers[0].shape === "drone") return <g fill={c}><rect x={x - 7} y={y - 4} width="14" height="8" rx="3" /><ellipse cx={x - 9} cy={y - 6} rx="6" ry="1.5" fill="#fff" opacity="0.7" /><ellipse cx={x + 9} cy={y - 6} rx="6" ry="1.5" fill="#fff" opacity="0.7" /></g>;
+    if (race.racers[0].shape === "boat") return <polygon points={`${x - 14},${y - 5} ${x + 8},${y - 5} ${x + 16},${y} ${x + 8},${y + 5} ${x - 14},${y + 5}`} fill="#f8fafc" stroke={c} strokeWidth="3" />;
+    if (race.racers[0].shape === "pod") return <ellipse cx={x} cy={y} rx="15" ry={h * 0.22} fill={c} stroke="#fff" strokeOpacity="0.5" />;
+    return <rect x={x - 14} y={y - h * 0.18} width="28" height={h * 0.36} rx={h * 0.18} fill={c} />;
+  };
+  return (
+    <svg viewBox="0 0 200 200" className="w-full h-full">
+      <Bg id={`g-${id}`} from={hex(race.sky[0])} to={hex(race.sky[1])} />
+      <g transform="translate(0 30)">
+        {lanes.map((r, i) => {
+          const y = i * h + h / 2;
+          const x = 40 + ((i * 37) % 90);
+          return (
+            <g key={r.name}>
+              <rect x="-10" y={i * h + 1} width="220" height={h - 2} fill="#fff" opacity={i % 2 ? 0.06 : 0.12} />
+              <rect x={x - 46} y={y - 1.5} width="34" height="3" rx="1.5" fill={hex(r.color)} opacity="0.5" />
+              <g className="qw-bob" style={{ animationDelay: `${i * 0.1}s` }}>{shape(r, x, y)}</g>
+            </g>
+          );
+        })}
+        {Array.from({ length: 20 }, (_, k) => (
+          <rect key={k} x={172 + (k % 2) * 6} y={k * 6} width="6" height="6" fill={(k + Math.floor(k / 2)) % 2 ? "#fff" : "#0A0A0A"} />
+        ))}
+      </g>
+      <text x="100" y="186" textAnchor="middle" fontSize="13" fontWeight="900" fill="#fff" letterSpacing="1">{race.name.toUpperCase()}</text>
+    </svg>
+  );
+}
+
 export const ART = {
   mega: Mega,
   "big-wheel": BigWheel,
@@ -355,6 +396,7 @@ export const ART = {
 };
 
 function GameArt({ game }) {
+  if (RACES.some((r) => r.id === game)) return <RaceArt id={game} />;
   const Art = ART[game];
   return Art ? <Art /> : null;
 }

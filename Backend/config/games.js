@@ -92,6 +92,29 @@ const WHEEL = {
   BOT_PLAYERS: num(process.env.WHEEL_BOT_PLAYERS, 9),
 };
 
+// Races: pick a racer; backers of the winner share the pool, less a 10% fee
+// from the losing stakes. Each race is the Big Wheel engine with racers for
+// segments: the winner is drawn from a seed whose hash is shown before the
+// first stake, then the race animation plays it out. Nobody on the winner:
+// the pool rolls over to the next race. Every racer has the same chance.
+const RACE_BASE = {
+  OPEN_MS: num(process.env.RACE_OPEN_MS, 20000),
+  SPIN_MS: num(process.env.RACE_RUN_MS, 8000),
+  RESULT_MS: num(process.env.RACE_RESULT_MS, 6000),
+  FEE_RATE: num(process.env.RACE_FEE_RATE, 0.1),
+  BOTS: PRACTICE_PLAYERS,
+  BOT_PLAYERS: num(process.env.RACE_BOT_PLAYERS, 7),
+};
+const race = (GAME, PREFIX, SEGMENTS) => ({ ...RACE_BASE, GAME, PREFIX, SEGMENTS });
+const RACES = [
+  race("marble-madness", "MM", 8),
+  race("grand-prix", "GP", 6),
+  race("rocket-race", "RR", 6),
+  race("drone-dash", "DD", 6),
+  race("powerboat", "PB", 5),
+  race("hyperdrive", "HD", 6),
+];
+
 // Last Standing: a knockout for up to 32 players at one stake. Each round
 // asks a two-way question; only the side fewer players picked survives.
 // The last ones standing share every stake (less a fee from the knocked-out
@@ -141,4 +164,4 @@ const PENALTY = {
   BOTS: PRACTICE_PLAYERS,
 };
 
-module.exports = { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, STANDING, MEGA, PENALTY };
+module.exports = { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, RACES, STANDING, MEGA, PENALTY };

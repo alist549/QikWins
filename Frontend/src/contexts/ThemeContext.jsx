@@ -1,14 +1,15 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-// Light, dark or follow the phone's setting. Stored per device.
-const ThemeContext = createContext({ theme: "system", resolved: "light", setTheme: () => {} });
+// Night (dark gradients, the default), light, or follow the phone's
+// setting. Stored per device.
+const ThemeContext = createContext({ theme: "dark", resolved: "dark", setTheme: () => {} });
 
 const media = () => window.matchMedia?.("(prefers-color-scheme: dark)");
 const readStored = () => {
   try {
-    return localStorage.getItem("theme") || "system";
+    return localStorage.getItem("theme") || "dark";
   } catch {
-    return "system";
+    return "dark";
   }
 };
 
@@ -28,7 +29,7 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", resolved === "dark");
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "dark" ? "#121212" : "#ffffff");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", resolved === "dark" ? "#0b0820" : "#ffffff");
   }, [resolved]);
 
   const setTheme = (value) => {

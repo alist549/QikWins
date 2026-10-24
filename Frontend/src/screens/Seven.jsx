@@ -72,7 +72,7 @@ function Seven() {
   const myRank = me ? ranked.findIndex((s) => s.you) + 1 : null;
 
   return (
-    <Page title="7x" back="/" track="game">
+    <Page title="7x" back="/" track="game" glow={["255 45 85", "255 149 0"]}>
       {(status === "idle" || !state) && (
         <div className="flex flex-col gap-4 animate-sheet-up">
           <div className="relative h-52 rounded-[28px] overflow-hidden shadow-float">

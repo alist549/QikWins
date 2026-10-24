@@ -5,8 +5,6 @@ const { WHEEL, COMMON } = require("../config/games");
 const { GameError } = require("./hopOff");
 const { seatBot } = require("../services/bots");
 
-const GAME = "big-wheel";
-
 // Big Wheel, one spin at a time:
 //   open:     players stake on any of the segments; live totals show what
 //             each segment would pay right now
@@ -14,7 +12,12 @@ const GAME = "big-wheel";
 //   result:   winners are paid, or the wheel rolls over into the next spin
 // The winning segment comes from a seed whose hash is shown while the wheel
 // is open (see services/fair.js), so it is fixed before anyone stakes.
+//
+// The races (Marble Madness and friends) run on this same engine with their
+// own config: racers instead of segments, and the race animation reveals the
+// winner that was drawn before the first stake.
 function createBigWheel({ store, publish = () => {}, notify = () => {}, config = WHEEL, now = Date.now, autoRun = true }) {
+  const GAME = config.GAME || "big-wheel";
   let round = null;
   let carry = 0;
   let stopped = false;
@@ -25,7 +28,7 @@ function createBigWheel({ store, publish = () => {}, notify = () => {}, config =
     if (!autoRun || stopped) return;
     const t = setTimeout(() => {
       timers.delete(t);
-      Promise.resolve(fn()).catch((e) => console.error("Big Wheel:", e.message));
+      Promise.resolve(fn()).catch((e) => console.error(`${GAME}:`, e.message));
     }, ms);
     timers.add(t);
   };
@@ -81,10 +84,10 @@ function createBigWheel({ store, publish = () => {}, notify = () => {}, config =
     };
   }
 
-  const broadcast = () => publish("big-wheel:state", snapshot());
+  const broadcast = () => publish(`${GAME}:state`, snapshot());
 
   function openRound() {
-    const id = `BW-${now().toString(36).toUpperCase()}-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
+    const id = `${config.PREFIX || "BW"}-${now().toString(36).toUpperCase()}-${crypto.randomBytes(2).toString("hex").toUpperCase()}`;
     const seed = fair.newSeed();
     round = {
       id,

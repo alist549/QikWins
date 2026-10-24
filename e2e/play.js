@@ -126,6 +126,33 @@ async function waitFor(fn, timeout = 90000) {
   endClip("lobby");
   await shot("lobby-games", { wait: 200 });
 
+  // Mega Jackpot: $1 into a 2,500-player knockout, play until out or done.
+  await page.goto(`${WEB}/play/mega-jackpot`);
+  await page.getByRole("radio", { name: "$1.00" }).click();
+  await shot("mega-jackpot-join");
+  startClip();
+  await page.getByRole("button", { name: /Play for the jackpot/ }).click();
+  await page.getByText(/starts when full/).waitFor();
+  await shot("mega-jackpot-filling", { wait: 3500 });
+  await page.getByText(/Round 1/).waitFor({ timeout: 60000 });
+  await shot("mega-jackpot-question", { wait: 600 });
+  let megaReveal = false;
+  const megaEnd = Date.now() + 240000;
+  while (Date.now() < megaEnd) {
+    if (await page.locator('[aria-live="polite"]').isVisible()) break;
+    if (await page.getByText("Leave and start a new one").isVisible().catch(() => false)) break;
+    const sides = page.locator("button.h-32:not([disabled])");
+    if ((await sides.count()) === 2) await sides.nth(Math.random() < 0.5 ? 0 : 1).click().catch(() => {});
+    if (!megaReveal && (await page.getByText(/· survives/).first().isVisible().catch(() => false))) {
+      megaReveal = true;
+      await shot("mega-jackpot-reveal", { wait: 900 });
+    }
+    await sleep(400);
+  }
+  await shot("mega-jackpot-result", { wait: 1500 });
+  endClip("mega-jackpot");
+  await page.getByRole("button", { name: /Leave and start a new one/ }).click().catch(() => {});
+
   // Big Wheel: back a segment, watch it spin.
   await page.goto(`${WEB}/play/big-wheel`);
   await waitFor(async () => {

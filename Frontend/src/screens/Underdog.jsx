@@ -89,7 +89,7 @@ function Underdog() {
   const share = revealed && state.totals ? state.totals.a / Math.max(1, state.totals.a + state.totals.b) : 0.5;
 
   return (
-    <Page title="Underdog" back="/" track="game">
+    <Page title="Underdog" back="/" track="game" glow={["124 58 237", "236 72 153"]}>
       <div className="text-center text-sm font-extrabold uppercase tracking-wider text-muted">The smaller side wins</div>
       <div className="relative mt-3 flex gap-3">
         <Side label={a} side="a" picked={chosen === "a"} winner={state?.winner} revealed={revealed} total={state?.totals?.a} count={state?.counts?.a} onPick={() => setSide("a")} disabled={revealed || Boolean(you)} />

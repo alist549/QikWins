@@ -72,7 +72,7 @@ function BigWheel() {
   const best = state?.pays ? Math.max(...state.pays.filter(Boolean), 0) : 0;
 
   return (
-    <Page title="Big Wheel" back="/" track="game">
+    <Page title="Big Wheel" back="/" track="game" glow={["124 58 237", "236 72 153"]}>
       {/* The stage */}
       <div className="relative rounded-[28px] overflow-hidden bg-[radial-gradient(circle_at_50%_40%,#4C1D95,#1E1B4B_70%)] shadow-float">
         <div className="h-[19rem] lg:h-[26rem]">

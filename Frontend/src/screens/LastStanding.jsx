@@ -64,8 +64,8 @@ function BigCrowd({ alive, total, label }) {
 // Last Standing and Mega Jackpot: knockouts where only the side fewer people
 // pick survives. Mega Jackpot is the same game at 2,500 seats.
 const META = {
-  "last-standing": { title: "Last Standing", art: "last-standing", rules: "lastStanding", tone: "from-[#7F1D1D] via-[#B91C1C] to-[#F97316]", button: "from-[#B91C1C] to-[#F97316]", cta: "Join the knockout" },
-  mega: { title: "Mega Jackpot", art: "mega", rules: "mega", tone: "from-[#713F12] via-[#CA8A04] to-[#F97316]", button: "from-[#CA8A04] via-[#F97316] to-[#DB2777]", cta: "Play for the jackpot" },
+  "last-standing": { title: "Last Standing", art: "last-standing", rules: "lastStanding", tone: "from-[#7F1D1D] via-[#B91C1C] to-[#F97316]", button: "from-[#B91C1C] to-[#F97316]", cta: "Join the knockout", glow: ["185 28 28", "249 115 22"] },
+  mega: { title: "Mega Jackpot", art: "mega", rules: "mega", tone: "from-[#713F12] via-[#CA8A04] to-[#F97316]", button: "from-[#CA8A04] via-[#F97316] to-[#DB2777]", cta: "Play for the jackpot", glow: ["202 138 4", "219 39 119"] },
 };
 
 function LastStanding({ game = "last-standing" }) {
@@ -119,7 +119,7 @@ function LastStanding({ game = "last-standing" }) {
   const last = table?.last;
 
   return (
-    <Page title={meta.title} back="/" track={status === "idle" ? "lobby" : "game"}>
+    <Page title={meta.title} back="/" glow={meta.glow} track={status === "idle" ? "lobby" : "game"}>
       {status === "idle" && (
         <div className="flex flex-col gap-4 animate-sheet-up">
           <div className="relative h-52 rounded-[28px] overflow-hidden shadow-float">
