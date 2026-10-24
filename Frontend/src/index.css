@@ -1,0 +1,64 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme tokens as RGB triplets (see tailwind.config.js), the same as
+   QikDrive: black and white, with QikDrive blue for the brand and accents. */
+:root {
+  --bg: 255 255 255;
+  --surface: 244 244 245;
+  --raised: 255 255 255;
+  --line: 228 228 231;
+  --fg: 10 10 10;
+  --muted: 113 113 122;
+  --primary: 10 10 10;
+  --on-primary: 255 255 255;
+  --brand: 0 125 254;
+  --danger: 220 38 38;
+  color-scheme: light;
+}
+
+:root.dark,
+.dark {
+  --bg: 18 18 18;
+  --surface: 30 30 30;
+  --raised: 30 30 30;
+  --line: 44 44 46;
+  --fg: 250 250 250;
+  --muted: 161 161 170;
+  --primary: 250 250 250;
+  --on-primary: 10 10 10;
+  --brand: 0 144 253;
+  --danger: 248 113 113;
+  color-scheme: dark;
+}
+
+* {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: rgb(var(--bg));
+  color: rgb(var(--fg));
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: rgb(var(--brand) / 0.25);
+}
+
+/* Numbers that tick (pools, counters, balances) keep their width. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
