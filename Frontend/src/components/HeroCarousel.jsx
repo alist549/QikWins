@@ -23,29 +23,29 @@ function HeroCarousel() {
   }, []);
 
   return (
-    <div className="relative rounded-[28px] overflow-hidden h-48 lg:h-full lg:min-h-[340px] qw-frame qw-bulbs bg-black">
+    <div className="relative rounded-[28px] overflow-hidden h-48 lg:h-full lg:min-h-[340px] shadow-float">
       {SLIDES.map((s, i) => (
         <div
           key={s.title}
           aria-hidden={i !== index}
-          className={`absolute inset-0 bg-gradient-to-br ${s.bg} text-white flex before:absolute before:inset-0 before:bg-[radial-gradient(120%_100%_at_30%_0%,transparent_30%,rgba(0,0,0,0.7)_100%)] transition-all duration-700 ${i === index ? "opacity-100 translate-x-0" : "opacity-0 translate-x-6 pointer-events-none"}`}
+          className={`absolute inset-0 bg-gradient-to-br ${s.bg} text-white flex transition-all duration-700 ${i === index ? "opacity-100 translate-x-0" : "opacity-0 translate-x-6 pointer-events-none"}`}
         >
-          <div className="flex-1 p-6 lg:p-12 flex flex-col justify-between z-10 min-w-0">
+          <div className="flex-1 p-5 lg:p-10 flex flex-col justify-between z-10 min-w-0">
             <div>
-              <div className="text-[10px] lg:text-sm font-bold uppercase tracking-[0.2em] text-[#F2D27A]">{s.kicker}</div>
+              <div className="text-[11px] lg:text-sm font-bold uppercase tracking-wider opacity-80">{s.kicker}</div>
               {s.win && (
                 <div className="mt-0.5 flex items-baseline gap-2 leading-none">
                   <span className="text-[11px] lg:text-base font-black tracking-wider">{s.winLabel || (s.win.endsWith("+") ? "FROM $1, WIN" : "FROM $1, WIN UP TO")}</span>
-                  <span className="text-[38px] lg:text-[92px] font-black tracking-tight qw-gold-text">{s.win}</span>
+                  <span className="text-[40px] lg:text-[96px] font-black tracking-tighter bg-gradient-to-b from-[#FEF9C3] via-[#FDE047] to-[#F59E0B] bg-clip-text text-transparent drop-shadow-[0_3px_10px_rgba(0,0,0,0.35)]">{s.win}</span>
                 </div>
               )}
-              <div className={`${s.win ? "mt-1 text-[15px] lg:text-3xl" : "mt-1 text-xl lg:text-5xl"} leading-[1.1] font-display font-bold`}>{s.title}</div>
+              <div className={`${s.win ? "mt-1 text-base lg:text-3xl" : "mt-1 text-[22px] lg:text-5xl"} leading-[1.1] font-extrabold tracking-tight`}>{s.title}</div>
             </div>
-            <Link to={s.to} tabIndex={i === index ? 0 : -1} className="self-start h-9 lg:h-14 px-4 lg:px-8 rounded-full qw-gold-btn text-sm lg:text-lg font-black inline-flex items-center hover:brightness-110 qw-shine relative overflow-hidden">
+            <Link to={s.to} tabIndex={i === index ? 0 : -1} className="self-start h-9 lg:h-14 px-4 lg:px-8 rounded-full bg-white text-black text-sm lg:text-lg font-black inline-flex items-center hover:opacity-90 qw-shine relative overflow-hidden">
               {s.cta}
             </Link>
           </div>
-          <div className="relative hidden sm:block w-36 lg:w-80 shrink-0 mr-3 lg:mr-6 rotate-3 rounded-3xl overflow-hidden self-center qw-frame qw-gloss z-10">
+          <div className="w-36 lg:w-80 shrink-0 -mr-4 -my-2 rotate-6 rounded-3xl overflow-hidden self-center shadow-float">
             <GameArt game={s.art} />
           </div>
         </div>
@@ -57,7 +57,7 @@ function HeroCarousel() {
             type="button"
             aria-label={`Banner ${i + 1}`}
             onClick={() => setIndex(i)}
-            className={`h-1.5 rounded-full transition-all ${i === index ? "w-5 bg-[#F2D27A]" : "w-1.5 bg-white/40"}`}
+            className={`h-1.5 rounded-full transition-all ${i === index ? "w-5 bg-white" : "w-1.5 bg-white/50"}`}
           />
         ))}
       </div>

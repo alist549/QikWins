@@ -43,7 +43,7 @@ function Page({ title, back, children, nav = true, track = "lobby", layout = "ga
   }, [glowA, glowB]);
   return (
     <div className="min-h-[100dvh] flex flex-col">
-      <div className="bg-gradient-to-r from-[#0B0806] via-[#2A1E08] to-[#0B0806] border-b border-[#D4A017]/40 text-[#F2D27A] text-center text-[10px] font-bold tracking-[0.18em] py-1.5 px-4">
+      <div className="bg-gradient-to-r from-[#7C3AED] via-[#EC4899] to-[#F97316] text-white text-center text-[11px] font-bold tracking-wide py-1 px-4">
         {rules?.realMoney ? `18+ · PLAY RESPONSIBLY${rules.licence ? ` · LICENCE ${rules.licence}` : ""}` : "18+ · PLAY RESPONSIBLY · PLAY CREDITS, NOT CASH"}
       </div>
       <div className="w-full max-w-md lg:max-w-[1440px] mx-auto px-4 lg:px-8 flex-1 flex flex-col">
@@ -75,9 +75,9 @@ function Page({ title, back, children, nav = true, track = "lobby", layout = "ga
                   key={to}
                   to={to}
                   end={to === "/"}
-                  className={({ isActive }) => `h-10 px-4 rounded-full inline-flex items-center text-sm font-bold transition ${isActive ? "qw-gold-btn" : "hover:bg-surface"}`}
+                  className={({ isActive }) => `h-10 px-4 rounded-full inline-flex items-center text-sm font-bold transition ${isActive ? "bg-fg text-bg" : "hover:bg-surface"}`}
                 >
-                  {label}
+                  {label === "Jackpot" ? <span className="text-[#F97316]">🔥 {label}</span> : label}
                 </NavLink>
               ))}
             </nav>
@@ -88,7 +88,7 @@ function Page({ title, back, children, nav = true, track = "lobby", layout = "ga
             aria-label={sound ? "Mute sound and music" : "Turn on sound and music"}
             aria-pressed={sound}
             onClick={() => setSoundEnabled(!sound)}
-            className={`w-9 h-9 rounded-full inline-flex items-center justify-center ${sound ? "qw-gold-btn" : "bg-surface text-muted"}`}
+            className={`w-9 h-9 rounded-full inline-flex items-center justify-center ${sound ? "bg-gradient-to-br from-[#7C3AED] to-[#EC4899] text-white" : "bg-surface text-muted"}`}
           >
             {sound ? <Volume2 size={17} /> : <VolumeX size={17} />}
           </button>
@@ -100,7 +100,7 @@ function Page({ title, back, children, nav = true, track = "lobby", layout = "ga
               <Counter value={user.balance} />
             </Link>
           ) : (
-            <Link to="/sign-in" className="relative overflow-hidden qw-shine h-9 px-4 rounded-full qw-gold-btn inline-flex items-center text-sm font-extrabold">
+            <Link to="/sign-in" className="relative overflow-hidden qw-shine h-9 px-4 rounded-full bg-gradient-to-r from-[#22C55E] to-[#0EA5E9] text-white inline-flex items-center text-sm font-extrabold shadow-float">
               Join now
             </Link>
           )}

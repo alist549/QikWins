@@ -24,8 +24,7 @@ export default {
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
-        logo: ["Cinzel", "Georgia", "serif"],
-        display: ["Cinzel", "Georgia", "serif"],
+        logo: ["Inter", "system-ui", "sans-serif"],
       },
       boxShadow: {
         float: "0 8px 30px rgb(0 0 0 / 0.12)",

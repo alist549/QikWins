@@ -50,9 +50,9 @@ function Lobby() {
           [Users, "Play people, not the house", "from-[#00C2FF] to-[#007DFE]"],
           [Eye, "Fee shown upfront", "from-[#22C55E] to-[#0EA5E9]"],
           [BadgeCheck, "Every round published", "from-[#F59E0B] to-[#EC4899]"],
-        ].map(([Icon, label]) => (
-          <span key={label} className="rounded-2xl py-2.5 lg:py-4 px-1.5 flex flex-col lg:flex-row lg:justify-center items-center gap-1 lg:gap-2 leading-tight text-[#F8EBC8] bg-gradient-to-b from-[#1A150D] to-[#0A0806] qw-frame">
-            <Icon size={18} className="text-[#E9C46A]" />
+        ].map(([Icon, label, tone]) => (
+          <span key={label} className={`rounded-2xl py-2.5 lg:py-4 px-1.5 flex flex-col lg:flex-row lg:justify-center items-center gap-1 lg:gap-2 leading-tight text-white bg-gradient-to-br ${tone} shadow-float`}>
+            <Icon size={18} />
             {label}
           </span>
         ))}
@@ -66,7 +66,7 @@ function Lobby() {
             role="tab"
             aria-selected={category === c.id}
             onClick={() => setCategory(c.id)}
-            className={`h-9 px-4 rounded-full text-sm font-bold whitespace-nowrap transition ${category === c.id ? "qw-gold-btn" : "bg-surface"}`}
+            className={`h-9 px-4 rounded-full text-sm font-bold whitespace-nowrap transition ${category === c.id ? `bg-gradient-to-r ${c.tone} text-white shadow-float` : "bg-surface"}`}
           >
             {c.label}
           </button>

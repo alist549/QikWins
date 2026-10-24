@@ -7,18 +7,18 @@ import { money } from "../lib/money";
 function GameTile({ game, live }) {
   const body = (
     <>
-      <div className="tile-art relative aspect-square rounded-[22px] overflow-hidden qw-frame qw-gloss qw-shine group-hover:scale-[1.03] transition-transform duration-300">
+      <div className="tile-art relative aspect-square rounded-[22px] overflow-hidden shadow-float qw-shine group-hover:scale-[1.03] transition-transform duration-300">
         <GameArt game={game.id} />
         {!game.live && (
           <span className="absolute top-2.5 left-2.5 h-6 px-2 rounded-full bg-white/90 text-black text-[11px] font-bold inline-flex items-center">SOON</span>
         )}
         {game.hot && (
-          <span className="absolute top-2.5 right-2.5 h-6 px-2 rounded-full qw-gold-btn text-[10px] font-black tracking-[0.15em] inline-flex items-center z-10">HOT</span>
+          <span className="absolute top-2.5 right-2.5 h-6 px-2 rounded-full bg-gradient-to-r from-[#F97316] to-[#EC4899] text-white text-[11px] font-extrabold inline-flex items-center qw-pulse">🔥 HOT</span>
         )}
         {game.max && (
-          <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-2xl bg-black/80 backdrop-blur flex flex-col leading-none z-10 ring-1 ring-[#D4A017]/60">
-            <span className="text-[9px] font-black tracking-[0.14em] text-[#F2D27A]">{game.max.endsWith("+") ? "$1 CAN WIN" : "$1 WINS UP TO"}</span>
-            <span className="text-xl font-black tracking-tight qw-gold-text">{game.max}</span>
+          <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-2xl bg-black/80 backdrop-blur flex flex-col leading-none">
+            <span className="text-[9px] font-black tracking-wider text-white/80">{game.max.endsWith("+") ? "$1 CAN WIN" : "$1 WINS UP TO"}</span>
+            <span className="text-xl font-black tracking-tight bg-gradient-to-b from-[#FEF9C3] to-[#F59E0B] bg-clip-text text-transparent">{game.max}</span>
           </span>
         )}
         {game.live && live?.pool > 0 && (

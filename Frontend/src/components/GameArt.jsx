@@ -15,19 +15,14 @@ function Bg({ id: name, from, to }) {
           <stop offset="0" stopColor={from} />
           <stop offset="1" stopColor={to} />
         </linearGradient>
-        <radialGradient id={`${id}-glow`} gradientUnits="userSpaceOnUse" cx="100" cy="30" r="150">
-          <stop offset="0" stopColor="#FFF4D6" stopOpacity="0.32" />
+        <radialGradient id={`${id}-glow`} gradientUnits="userSpaceOnUse" cx="150" cy="40" r="140">
+          <stop offset="0" stopColor="#fff" stopOpacity="0.35" />
           <stop offset="1" stopColor="#fff" stopOpacity="0" />
-        </radialGradient>
-        <radialGradient id={`${id}-vig`} gradientUnits="userSpaceOnUse" cx="100" cy="100" r="150">
-          <stop offset="0.45" stopColor="#000" stopOpacity="0" />
-          <stop offset="1" stopColor="#000" stopOpacity="0.75" />
         </radialGradient>
       </defs>
       {/* Bleeds past the square so wide banners stay filled. */}
       <rect x="-400" y="-400" width="1000" height="1000" fill={`url(#${id})`} />
       <rect x="-400" y="-400" width="1000" height="1000" fill={`url(#${id}-glow)`} />
-      <rect x="-400" y="-400" width="1000" height="1000" fill={`url(#${id}-vig)`} />
     </>
   );
 }
@@ -56,46 +51,18 @@ function Coin({ x, y, r = 12, delay = 0 }) {
   );
 }
 
-function Big({ x = 100, y, size, children, fill, stroke = "#2A1A04", sw, style, ...rest }) {
-  const id = `gold${useId().replace(/:/g, "")}`;
-  const headline = size >= 24;
+function Big({ x = 100, y, size, children, fill = "#fff", stroke = "#0A0A0A", sw = 4, ...rest }) {
   return (
-    <>
-      {headline && (
-        <defs>
-          <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#FFF8DC" />
-            <stop offset="0.3" stopColor="#F7D774" />
-            <stop offset="0.52" stopColor="#C9971C" />
-            <stop offset="0.66" stopColor="#FFE9A3" />
-            <stop offset="1" stopColor="#A97C1B" />
-          </linearGradient>
-        </defs>
-      )}
-      <text
-        x={x}
-        y={y}
-        textAnchor="middle"
-        style={{ fontFamily: "Cinzel, Georgia, serif", ...style }}
-        fontSize={size}
-        fontWeight="900"
-        fill={headline ? `url(#${id})` : fill || "#FFF8E7"}
-        stroke={stroke}
-        strokeWidth={sw ?? (headline ? 2.5 : 2.5)}
-        strokeLinejoin="round"
-        paintOrder="stroke"
-        {...rest}
-      >
-        {children}
-      </text>
-    </>
+    <text x={x} y={y} textAnchor="middle" fontSize={size} fontWeight="900" fill={fill} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" paintOrder="stroke" letterSpacing="-1" {...rest}>
+      {children}
+    </text>
   );
 }
 
 // Sky: sun rays, clouds, the jet and a skydiver.
 function HopOff() {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-hop" from="#0369A1" to="#38BDF8" />
       <g className="qw-spin" style={{ animationDuration: "24s" }} opacity="0.25">
         {Array.from({ length: 10 }, (_, i) => (
@@ -109,18 +76,18 @@ function HopOff() {
         <ellipse cx="170" cy="164" rx="44" ry="14" />
       </g>
       <g className="qw-float">
-        <rect x="40" y="96" width="96" height="20" rx="10" fill="#FFFFFF" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
-        <polygon points="134,96 156,106 134,116" fill="#FFFFFF" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" strokeLinejoin="round" />
-        <polygon points="46,98 32,72 46,72 64,98" fill="#DC2626" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" strokeLinejoin="round" />
-        <polygon points="80,110 58,138 74,138 104,110" fill="#E4E4E7" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" strokeLinejoin="round" />
+        <rect x="40" y="96" width="96" height="20" rx="10" fill="#FFFFFF" stroke="#0A0A0A" strokeWidth="2.5" />
+        <polygon points="134,96 156,106 134,116" fill="#FFFFFF" stroke="#0A0A0A" strokeWidth="2.5" strokeLinejoin="round" />
+        <polygon points="46,98 32,72 46,72 64,98" fill="#DC2626" stroke="#0A0A0A" strokeWidth="2.5" strokeLinejoin="round" />
+        <polygon points="80,110 58,138 74,138 104,110" fill="#E4E4E7" stroke="#0A0A0A" strokeWidth="2.5" strokeLinejoin="round" />
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <circle key={i} cx={62 + i * 11} cy="104" r="2.6" fill="#0369A1" />
         ))}
       </g>
       <g className="qw-bob">
-        <path d="M150 112 a16 16 0 0 1 32 0 z" fill="#F97316" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
-        <line x1="150" y1="112" x2="166" y2="132" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
-        <line x1="182" y1="112" x2="166" y2="132" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
+        <path d="M150 112 a16 16 0 0 1 32 0 z" fill="#F97316" stroke="#0A0A0A" strokeWidth="2" />
+        <line x1="150" y1="112" x2="166" y2="132" stroke="#0A0A0A" strokeWidth="1.2" />
+        <line x1="182" y1="112" x2="166" y2="132" stroke="#0A0A0A" strokeWidth="1.2" />
         <circle cx="166" cy="134" r="3.5" fill="#0A0A0A" />
       </g>
       <Sparkles at={[[24, 30], [110, 22, 5], [96, 150, 5]]} />
@@ -135,7 +102,7 @@ function Underdog() {
   const crowd = [];
   for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) crowd.push([22 + c * 18 + (r % 2) * 6, 112 + r * 16]);
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-dog" from="#6D28D9" to="#DB2777" />
       <polygon points="0,0 118,0 82,200 0,200" fill="#0A0A0A" opacity="0.3" />
       <polygon points="114,0 122,0 86,200 78,200" fill="#FDE047" />
@@ -146,12 +113,12 @@ function Underdog() {
         </g>
       ))}
       {[[134, 140], [160, 134]].map(([x, y]) => (
-        <g key={x} fill="#fff" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2">
+        <g key={x} fill="#fff" stroke="#0A0A0A" strokeWidth="2">
           <circle cx={x} cy={y} r="9" />
           <rect x={x - 11} y={y + 9} width="22" height="16" rx="7" />
         </g>
       ))}
-      <path d="M134 108 l6 -14 l7 9 l7 -12 l7 12 l7 -9 l6 14 z" fill="#FDE047" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" strokeLinejoin="round" className="qw-bob" />
+      <path d="M134 108 l6 -14 l7 9 l7 -12 l7 12 l7 -9 l6 14 z" fill="#FDE047" stroke="#0A0A0A" strokeWidth="2.5" strokeLinejoin="round" className="qw-bob" />
       <Big x="50" y="80" size="40" fill="#C4B5FD">A</Big>
       <Big x="152" y="80" size="40">B</Big>
       <Sparkles at={[[118, 96, 5], [184, 100, 5], [176, 160, 4]]} />
@@ -162,7 +129,7 @@ function Underdog() {
 
 function GoldenDrop() {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-drop" from="#0F172A" to="#1E3A8A" />
       {/* Ten regions on a map grid */}
       <g opacity="0.9">
@@ -189,7 +156,7 @@ function GoldenDrop() {
 // Spotlight on one door: the knockout, in deep red.
 function LastStanding() {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-last" from="#450A0A" to="#DC2626" />
       <g className="qw-sweep">
         <polygon points="96,-10 104,-10 150,200 50,200" fill="#FEF3C7" opacity="0.22" />
@@ -212,7 +179,7 @@ function LastStanding() {
 // Stadium at night: floodlights, the goal, the ball and the cup.
 function SpotKick() {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-kick" from="#022C22" to="#059669" />
       {[[16, 0], [184, 0]].map(([x], i) => (
         <g key={x} className="qw-sweep" style={{ animationDelay: `${i * 2}s` }}>
@@ -232,14 +199,14 @@ function SpotKick() {
       </g>
       <path d="M44 128 V72 H140 V128" fill="none" stroke="#fff" strokeWidth="6" strokeLinejoin="round" />
       <g className="qw-kick">
-        <circle cx="86" cy="160" r="12" fill="#fff" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
+        <circle cx="86" cy="160" r="12" fill="#fff" stroke="#0A0A0A" strokeWidth="2" />
         <path d="M86 152 l6 4 -2 7 h-8 l-2 -7 z" fill="#0A0A0A" />
       </g>
       <g transform="translate(164 104)">
         <g className="qw-bob">
-          <path d="M-14 -22 h28 v8 a14 14 0 0 1 -28 0 z" fill="#FACC15" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
-          <rect x="-4" y="0" width="8" height="10" fill="#FACC15" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
-          <rect x="-11" y="10" width="22" height="6" rx="2" fill="#92400E" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
+          <path d="M-14 -22 h28 v8 a14 14 0 0 1 -28 0 z" fill="#FACC15" stroke="#0A0A0A" strokeWidth="2.5" />
+          <rect x="-4" y="0" width="8" height="10" fill="#FACC15" stroke="#0A0A0A" strokeWidth="2" />
+          <rect x="-11" y="10" width="22" height="6" rx="2" fill="#92400E" stroke="#0A0A0A" strokeWidth="2" />
         </g>
       </g>
       <Sparkles at={[[24, 70], [176, 60], [150, 110, 5]]} />
@@ -251,7 +218,7 @@ function SpotKick() {
 
 function DerbyTug() {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-tug" from="#EA580C" to="#FACC15" />
       <g className="qw-tug">
         <line x1="20" y1="110" x2="180" y2="110" stroke="#78350F" strokeWidth="6" strokeLinecap="round" />
@@ -276,7 +243,7 @@ function DerbyTug() {
 
 function MindReader() {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-mind" from="#0D9488" to="#22D3EE" />
       <circle cx="100" cy="96" r="58" fill="none" stroke="#fff" strokeWidth="2" strokeDasharray="4 8" opacity="0.6" className="qw-spin" />
       <circle cx="100" cy="96" r="40" fill="#fff" opacity="0.95" />
@@ -297,7 +264,7 @@ function MindReader() {
 
 function Squads() {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-squad" from="#4338CA" to="#818CF8" />
       {[
         [64, 92, "#FACC15"],
@@ -338,7 +305,7 @@ function Die({ x, y, n, fill = "#fff", pip = "#0A0A0A", className = "", style })
 // Neon casino: glowing rings, gold dollars and tumbling dice.
 function Seven() {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-seven" from="#9F1239" to="#F97316" />
       {[78, 62, 46].map((r, i) => (
         <circle key={r} cx="100" cy="74" r={r} fill="none" stroke={["#F0ABFC", "#FDE047", "#67E8F9"][i]} strokeWidth="2.5" strokeDasharray="2 7" strokeLinecap="round" className="qw-spin" style={{ animationDuration: `${10 + i * 4}s`, animationDirection: i % 2 ? "reverse" : "normal" }} />
@@ -358,7 +325,7 @@ function Seven() {
 // Fight night: a lightning split, two fists and the prize.
 function Double() {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-x2" from="#0E7490" to="#4C1D95" />
       <polygon points="0,0 112,0 92,96 116,96 80,200 0,200" fill="#0A0A0A" opacity="0.28" />
       <polyline points="112,0 92,96 116,96 80,200" fill="none" stroke="#FDE047" strokeWidth="5" strokeLinejoin="round" className="qw-glow" />
@@ -383,7 +350,7 @@ function BigWheel() {
   const slice = (Math.PI * 2) / colors.length;
   const r = 48;
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-wheel" from="#3B0764" to="#C026D3" />
       {Array.from({ length: 24 }, (_, i) => {
         const a = (i / 24) * Math.PI * 2;
@@ -395,7 +362,7 @@ function BigWheel() {
         </g>
       ))}
       <g transform="translate(100 128)">
-        <circle r={r + 9} fill="#FACC15" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
+        <circle r={r + 9} fill="#FACC15" stroke="#0A0A0A" strokeWidth="3" />
         <g className="qw-spin" style={{ animationDuration: "6s" }}>
           {colors.map((c, i) => {
             const a0 = i * slice;
@@ -404,7 +371,7 @@ function BigWheel() {
           })}
           <circle r="12" fill="#0A0A0A" stroke="#FACC15" strokeWidth="3" />
         </g>
-        <polygon points="-10,-64 10,-64 0,-46" fill="#fff" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" strokeLinejoin="round" />
+        <polygon points="-10,-64 10,-64 0,-46" fill="#fff" stroke="#0A0A0A" strokeWidth="2.5" strokeLinejoin="round" />
       </g>
       <Big y="62" size="34" fill="#FDE047" className="qw-pulse">$50+</Big>
     </svg>
@@ -416,7 +383,7 @@ function Mega() {
     [30, 158, 0], [62, 164, 0.4], [138, 164, 0.8], [170, 158, 1.2],
   ];
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-mega" from="#78350F" to="#F59E0B" />
       <g className="qw-spin" style={{ animationDuration: "18s" }} opacity="0.35">
         {Array.from({ length: 12 }, (_, i) => (
@@ -424,11 +391,11 @@ function Mega() {
         ))}
       </g>
       <g className="qw-bob">
-        <path d="M58 92 L70 52 L88 76 L100 40 L112 76 L130 52 L142 92 Z" fill="#FDE047" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" strokeLinejoin="round" />
-        <rect x="58" y="90" width="84" height="14" rx="4" fill="#FACC15" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
-        <circle cx="100" cy="40" r="6" fill="#B91C1C" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
-        <circle cx="70" cy="52" r="5" fill="#1E3A8A" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
-        <circle cx="130" cy="52" r="5" fill="#1E3A8A" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
+        <path d="M58 92 L70 52 L88 76 L100 40 L112 76 L130 52 L142 92 Z" fill="#FDE047" stroke="#0A0A0A" strokeWidth="3" strokeLinejoin="round" />
+        <rect x="58" y="90" width="84" height="14" rx="4" fill="#FACC15" stroke="#0A0A0A" strokeWidth="3" />
+        <circle cx="100" cy="40" r="6" fill="#EC4899" stroke="#0A0A0A" strokeWidth="2" />
+        <circle cx="70" cy="52" r="5" fill="#22D3EE" stroke="#0A0A0A" strokeWidth="2" />
+        <circle cx="130" cy="52" r="5" fill="#22D3EE" stroke="#0A0A0A" strokeWidth="2" />
       </g>
       {coins.map(([x, y, d]) => (
         <g key={x + "-" + y} className="qw-pulse" style={{ animationDelay: `${d}s` }}>
@@ -436,8 +403,8 @@ function Mega() {
           <text x={x} y={y + 5} textAnchor="middle" fontSize="14" fontWeight="900" fill="#92400E">$</text>
         </g>
       ))}
-      <Big y="140" size="26">JACKPOT</Big>
-      <Big y="190" size="11" sw="2.5" className="qw-tagline">$1 IN · LAST ONE TAKES ALL</Big>
+      <text x="100" y="138" textAnchor="middle" fontSize="24" fontWeight="900" fill="#fff" stroke="#0A0A0A" strokeWidth="1">JACKPOT</text>
+      <text x="100" y="190" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff" opacity="0.95" className="qw-tagline">$1 IN · LAST ONE TAKES ALL</text>
     </svg>
   );
 }
@@ -457,7 +424,7 @@ function RaceHead({ id }) {
 function MarbleMadness() {
   const marbles = [["#F43F5E", 0], ["#22D3EE", 1.2], ["#FDE047", 2.4], ["#A3E635", 3.6]];
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-mm" from="#701A75" to="#DB2777" />
       {[78, 60, 42, 24].map((r, i) => (
         <ellipse key={r} cx="100" cy="128" rx={r} ry={r * 0.42} fill="none" stroke={["#F0ABFC", "#C084FC", "#818CF8", "#67E8F9"][i]} strokeWidth="5" opacity="0.9" />
@@ -479,7 +446,7 @@ function MarbleMadness() {
 // A red race car flat out past the kerbs, chequered flag waving.
 function GrandPrix() {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-gp" from="#7F1D1D" to="#F97316" />
       <rect x="-20" y="138" width="240" height="40" fill="#27272A" />
       {Array.from({ length: 12 }, (_, i) => (
@@ -490,10 +457,10 @@ function GrandPrix() {
         {[96, 112, 124].map((y, i) => <rect key={y} x={i * 30} y={y} width="50" height="3" rx="1.5" fill="#fff" />)}
       </g>
       <g className="qw-bob">
-        <path d="M40 128 L58 112 H96 L112 100 H132 L136 112 H162 L170 128 Z" fill="#DC2626" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" strokeLinejoin="round" />
+        <path d="M40 128 L58 112 H96 L112 100 H132 L136 112 H162 L170 128 Z" fill="#DC2626" stroke="#0A0A0A" strokeWidth="3" strokeLinejoin="round" />
         <rect x="150" y="104" width="22" height="6" rx="2" fill="#0A0A0A" />
         <rect x="30" y="112" width="16" height="6" rx="2" fill="#0A0A0A" />
-        <path d="M104 104 q10 -10 22 0" fill="#FDE047" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
+        <path d="M104 104 q10 -10 22 0" fill="#FDE047" stroke="#0A0A0A" strokeWidth="2" />
         {[62, 146].map((x) => (
           <g key={x}>
             <circle cx={x} cy="130" r="13" fill="#0A0A0A" />
@@ -518,7 +485,7 @@ function GrandPrix() {
 function RocketRace() {
   const rockets = [[56, "#F43F5E", 0], [100, "#22D3EE", 0.4], [144, "#FDE047", 0.8]];
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-rr" from="#1E1B4B" to="#4338CA" />
       {[[20, 20], [60, 80], [170, 90], [140, 20], [30, 120], [180, 150]].map(([x, y]) => <circle key={`${x}${y}`} cx={x} cy={y} r="1.6" fill="#fff" className="qw-glow" />)}
       <circle cx="176" cy="176" r="22" fill="#F59E0B" />
@@ -528,9 +495,9 @@ function RocketRace() {
           <g className="qw-float" style={{ animationDelay: `${d}s` }}>
             <path d="M-6 30 Q0 64 6 30 Z" fill="#F97316" className="qw-glow" />
             <path d="M-3 30 Q0 50 3 30 Z" fill="#FDE047" />
-            <path d="M0 -12 Q10 0 9 26 H-9 Q-10 0 0 -12 Z" fill="#fff" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" strokeLinejoin="round" />
-            <circle cx="0" cy="6" r="4" fill={c} stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
-            <path d="M-9 16 L-16 30 H-9 Z M9 16 L16 30 H9 Z" fill={c} stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" strokeLinejoin="round" />
+            <path d="M0 -12 Q10 0 9 26 H-9 Q-10 0 0 -12 Z" fill="#fff" stroke="#0A0A0A" strokeWidth="2.5" strokeLinejoin="round" />
+            <circle cx="0" cy="6" r="4" fill={c} stroke="#0A0A0A" strokeWidth="2" />
+            <path d="M-9 16 L-16 30 H-9 Z M9 16 L16 30 H9 Z" fill={c} stroke="#0A0A0A" strokeWidth="2" strokeLinejoin="round" />
           </g>
         </g>
       ))}
@@ -542,7 +509,7 @@ function RocketRace() {
 // Racing drones through neon gates over a night city.
 function DroneDash() {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-dd" from="#083344" to="#0891B2" />
       <g fill="#0A0A0A" opacity="0.55">
         {[[0, 140, 26, 60], [28, 120, 20, 80], [50, 150, 30, 50], [84, 130, 18, 70], [106, 112, 24, 88], [134, 146, 26, 54], [162, 124, 22, 76], [186, 150, 20, 50]].map(([x, y, w, h]) => <rect key={x} x={x} y={y} width={w} height={h} />)}
@@ -553,8 +520,8 @@ function DroneDash() {
       {[[40, 104, "#F43F5E", 0], [110, 92, "#FDE047", 0.5], [160, 112, "#fff", 1]].map(([x, y, c, d]) => (
         <g key={x} transform={`translate(${x} ${y})`}>
           <g className="qw-float" style={{ animationDelay: `${d}s` }}>
-            <rect x="-9" y="-4" width="18" height="9" rx="4" fill={c} stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
-            <line x1="-14" y1="-7" x2="14" y2="-7" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
+            <rect x="-9" y="-4" width="18" height="9" rx="4" fill={c} stroke="#0A0A0A" strokeWidth="2" />
+            <line x1="-14" y1="-7" x2="14" y2="-7" stroke="#0A0A0A" strokeWidth="2" />
             <ellipse cx="-14" cy="-8" rx="8" ry="2" fill="#E0F2FE" opacity="0.9" />
             <ellipse cx="14" cy="-8" rx="8" ry="2" fill="#E0F2FE" opacity="0.9" />
           </g>
@@ -569,7 +536,7 @@ function DroneDash() {
 // A speedboat cutting across bright water, spray flying.
 function Powerboat() {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-pb" from="#0369A1" to="#2DD4BF" />
       <circle cx="160" cy="80" r="16" fill="#FDE047" opacity="0.9" />
       <rect x="-20" y="120" width="240" height="90" fill="#0E7490" />
@@ -577,9 +544,9 @@ function Powerboat() {
         <path key={y} d={`M-20 ${y} q15 -6 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0`} fill="none" stroke="#A5F3FC" strokeWidth="3" opacity={0.8 - i * 0.2} className="qw-road" />
       ))}
       <g className="qw-bob">
-        <path d="M44 124 H150 L170 108 H120 L108 96 H76 L68 108 H44 Z" fill="#fff" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" strokeLinejoin="round" />
+        <path d="M44 124 H150 L170 108 H120 L108 96 H76 L68 108 H44 Z" fill="#fff" stroke="#0A0A0A" strokeWidth="3" strokeLinejoin="round" />
         <path d="M44 124 H150 L162 114 H50 Z" fill="#DC2626" />
-        <rect x="84" y="100" width="18" height="8" rx="2" fill="#0EA5E9" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
+        <rect x="84" y="100" width="18" height="8" rx="2" fill="#0EA5E9" stroke="#0A0A0A" strokeWidth="2" />
         <path d="M36 122 q-14 -14 -24 -4 q10 -18 26 -8" fill="#E0F2FE" opacity="0.95" className="qw-glow" />
       </g>
       <Sparkles at={[[24, 86], [130, 150, 5], [184, 136, 5]]} color="#fff" />
@@ -591,7 +558,7 @@ function Powerboat() {
 // Warp tunnel: star streaks rushing out from the centre, a pod in the middle.
 function Hyperdrive() {
   return (
-    <svg viewBox="0 0 200 200" className="w-full h-full qw-art">
+    <svg viewBox="0 0 200 200" className="w-full h-full">
       <Bg id="g-hd" from="#2E1065" to="#BE185D" />
       <g className="qw-spin" style={{ animationDuration: "14s" }}>
         {Array.from({ length: 24 }, (_, i) => {
@@ -603,8 +570,8 @@ function Hyperdrive() {
       </g>
       <circle cx="100" cy="118" r="22" fill="#fff" opacity="0.18" className="qw-pulse" />
       <g className="qw-bob">
-        <ellipse cx="100" cy="122" rx="30" ry="11" fill="#E5E7EB" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
-        <ellipse cx="100" cy="116" rx="13" ry="8" fill="#22D3EE" stroke="#000" strokeOpacity="0.45" strokeWidth="1.2" />
+        <ellipse cx="100" cy="122" rx="30" ry="11" fill="#E5E7EB" stroke="#0A0A0A" strokeWidth="3" />
+        <ellipse cx="100" cy="116" rx="13" ry="8" fill="#22D3EE" stroke="#0A0A0A" strokeWidth="2.5" />
         <circle cx="74" cy="124" r="3" fill="#F472B6" />
         <circle cx="126" cy="124" r="3" fill="#F472B6" />
       </g>
