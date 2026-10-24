@@ -7,9 +7,11 @@ QikWins is a website of live pool games where players compete against each other
 
 Until real money is switched on, balances are play credits: every new account starts with $100 of credits and no cash moves (see [Going live](#going-live)). It's built on the same stack as [QikDrive](https://github.com/alist549/QikDriveZw): React, Vite and Tailwind on the web, Node, Express, MongoDB and Socket.IO on the server. The look is a night theme with a slowly drifting gradient in each game's colours, with separate phone and desktop layouts.
 
-| Lobby | Big Wheel | Last Standing | Penalties | 7x | Hop Off |
+| Lobby | Sign-up code | Mega Jackpot | Big Wheel | Penalties | 7x |
 | --- | --- | --- | --- | --- | --- |
-| ![](docs/screenshots/01-lobby.png) | ![](docs/screenshots/05-big-wheel-spinning.png) | ![](docs/screenshots/10-last-standing-reveal.png) | ![](docs/screenshots/15-penalties-goal-or-save.png) | ![](docs/screenshots/20-7x-rolling.png) | ![](docs/screenshots/29-hop-off-flying.png) |
+| ![](docs/screenshots/01-lobby.png) | ![](docs/screenshots/03-sign-up-code.png) | ![](docs/screenshots/07-mega-jackpot-question.png) | ![](docs/screenshots/10-big-wheel-spinning.png) | ![](docs/screenshots/20-penalties-goal-or-save.png) | ![](docs/screenshots/25-7x-rolling.png) |
+
+![Desktop lobby](docs/screenshots/desktop/02-lobby.png)
 
 Short clips of each game in motion are in `docs/clips`.
 

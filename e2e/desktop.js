@@ -40,7 +40,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await page.goto(WEB);
   await page.evaluate((t) => localStorage.setItem("qikwins.token", t), token);
   await page.goto(WEB);
-  await shot("lobby", 2500);
+  await page.getByText("All games").waitFor();
+  await shot("lobby", 1200);
   await page.mouse.wheel(0, 520);
   await shot("lobby-games");
 
