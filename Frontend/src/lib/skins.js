@@ -1,44 +1,44 @@
-// Hop Off looks local everywhere: the rules, maths and timing are the same,
-// only the vehicle, the stops and the "get off" shout change.
+// Hop Off routes. The rules, maths and timing are the same on every route;
+// only the cities and the sky change. Each stop is a real city.
 export const SKINS = {
-  harare: {
-    city: "Harare",
-    vehicle: "Kombi",
-    shout: "Ndiburuke!",
-    shoutHint: "Get off here",
-    stops: ["Copa Cabana", "Fourth Street", "Rotten Row", "Avondale", "Belgravia", "Mount Pleasant", "Borrowdale", "Sam Levy's", "Chisipite", "Glen Lorne"],
+  world: {
+    city: "World Tour",
+    vehicle: "Jet",
+    shout: "Hop off!",
+    stops: ["London", "Paris", "Dubai", "Mumbai", "Singapore", "Tokyo", "Sydney", "Rio", "New York", "Lagos"],
+    sky: [0x1d4ed8, 0x38bdf8],
   },
-  nairobi: {
-    city: "Nairobi",
-    vehicle: "Matatu",
-    shout: "Shuka!",
-    shoutHint: "Get off here",
-    stops: ["Ambassadeur", "Kencom", "Ngara", "Pangani", "Muthaiga", "Gigiri", "Runda", "Ruaka", "Banana", "Limuru"],
+  europe: {
+    city: "Europe",
+    vehicle: "Jet",
+    shout: "Hop off!",
+    stops: ["Lisbon", "Madrid", "Paris", "Amsterdam", "Berlin", "Prague", "Vienna", "Rome", "Athens", "Istanbul"],
+    sky: [0x4338ca, 0x818cf8],
   },
-  lagos: {
-    city: "Lagos",
-    vehicle: "Danfo",
-    shout: "O wa o!",
-    shoutHint: "Get off here",
-    stops: ["CMS", "Obalende", "Ikoyi", "Lekki Phase 1", "Ikate", "Chevron", "Ajah", "Sangotedo", "Abraham Adesanya", "Awoyaya"],
+  americas: {
+    city: "Americas",
+    vehicle: "Jet",
+    shout: "Hop off!",
+    stops: ["Toronto", "New York", "Miami", "Havana", "Mexico City", "Bogotá", "Lima", "São Paulo", "Rio", "Buenos Aires"],
+    sky: [0xc2410c, 0xfb923c],
   },
-  london: {
-    city: "London",
-    vehicle: "Night bus",
-    shout: "Get off!",
-    shoutHint: "Ring the bell",
-    stops: ["Trafalgar Sq", "Piccadilly", "Oxford Circus", "Marble Arch", "Paddington", "Notting Hill", "Shepherd's Bush", "Hammersmith", "Chiswick", "Kew"],
+  sun: {
+    city: "Africa & Asia",
+    vehicle: "Jet",
+    shout: "Hop off!",
+    stops: ["Cairo", "Nairobi", "Lagos", "Johannesburg", "Cape Town", "Dubai", "Mumbai", "Bangkok", "Shanghai", "Seoul"],
+    sky: [0x0f766e, 0x2dd4bf],
   },
 };
 
-const KEY = "hopoff.skin";
+const KEY = "hopoff.route";
 
 export function savedSkin() {
   try {
     const value = localStorage.getItem(KEY);
-    return SKINS[value] ? value : "harare";
+    return SKINS[value] ? value : "world";
   } catch {
-    return "harare";
+    return "world";
   }
 }
 

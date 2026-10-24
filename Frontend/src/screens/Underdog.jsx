@@ -9,6 +9,7 @@ import { useSession } from "../contexts/SessionContext";
 import { useCountdown, useGame } from "../lib/useGame";
 import { useRules } from "../lib/useRules";
 import { api } from "../lib/api";
+import { sfx, useCountdownTicks } from "../lib/sound";
 import { money, percent } from "../lib/money";
 
 function Side({ label, side, picked, winner, revealed, total, count, onPick, disabled }) {
@@ -45,6 +46,7 @@ function Underdog() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const seconds = useCountdown(state?.endsAt);
+  useCountdownTicks(state?.phase === "open" ? seconds : 0);
   const [burst, setBurst] = useState(null);
   const celebrated = useRef(null);
 
@@ -56,8 +58,10 @@ function Underdog() {
   const you = state?.you;
   const revealed = state?.phase === "revealed";
   useEffect(() => {
-    if (!revealed || !you || celebrated.current === state.roundId) return;
+    if (!revealed || celebrated.current === state.roundId) return;
     celebrated.current = state.roundId;
+    if (!you) return sfx("reveal");
+    sfx(you.payout > you.stake ? "win" : you.payout === you.stake ? "reveal" : "lose");
     if (you.payout > you.stake) {
       setBurst(you.payout - you.stake);
       const id = setTimeout(() => setBurst(null), 2600);
@@ -72,6 +76,7 @@ function Underdog() {
     setBusy(true);
     setError("");
     try {
+      sfx("join");
       setState(await api("/games/underdog/stake", { method: "POST", body: { side: chosen, stake }, token }));
     } catch (e) {
       setError(e.message);
@@ -84,7 +89,7 @@ function Underdog() {
   const share = revealed && state.totals ? state.totals.a / Math.max(1, state.totals.a + state.totals.b) : 0.5;
 
   return (
-    <Page title="Underdog" back="/play">
+    <Page title="Underdog" back="/" track="game">
       <div className="text-center text-sm font-extrabold uppercase tracking-wider text-muted">The smaller side wins</div>
       <div className="relative mt-3 flex gap-3">
         <Side label={a} side="a" picked={chosen === "a"} winner={state?.winner} revealed={revealed} total={state?.totals?.a} count={state?.counts?.a} onPick={() => setSide("a")} disabled={revealed || Boolean(you)} />

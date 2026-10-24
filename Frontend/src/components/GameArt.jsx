@@ -44,18 +44,23 @@ function HopOff() {
         <rect x="-20" y="2" width="6" height="7" fill="#fff" />
         <rect x="-8" y="2" width="6" height="7" fill="#fff" />
       </g>
-      {/* Kombi */}
+      {/* Jet */}
+      <g className="qw-float">
+        <rect x="46" y="82" width="96" height="20" rx="10" fill="#FFFFFF" />
+        <polygon points="140,82 160,92 140,102" fill="#FFFFFF" />
+        <polygon points="52,84 38,58 52,58 70,84" fill="#0A0A0A" />
+        <polygon points="86,96 64,126 80,126 110,96" fill="#E4E4E7" />
+        {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+          <circle key={i} cx={62 + i * 10} cy="90" r="2.6" fill="#0A0A0A" />
+        ))}
+        <rect x="46" y="95" width="94" height="3" fill="#007DFE" />
+      </g>
+      {/* Parachute */}
       <g className="qw-bob">
-        <rect x="40" y="108" width="92" height="40" rx="10" fill="#FFFFFF" />
-        <rect x="40" y="128" width="92" height="8" fill="#0A0A0A" opacity="0.12" />
-        <rect x="48" y="114" width="18" height="13" rx="3" fill="#0A0A0A" />
-        <rect x="70" y="114" width="18" height="13" rx="3" fill="#0A0A0A" />
-        <rect x="92" y="114" width="18" height="13" rx="3" fill="#0A0A0A" />
-        <rect x="114" y="114" width="14" height="13" rx="3" fill="#7DD3FC" />
-        <circle cx="62" cy="150" r="9" fill="#0A0A0A" />
-        <circle cx="62" cy="150" r="3.5" fill="#fff" />
-        <circle cx="112" cy="150" r="9" fill="#0A0A0A" />
-        <circle cx="112" cy="150" r="3.5" fill="#fff" />
+        <path d="M150 120 a16 16 0 0 1 32 0 z" fill="#FACC15" />
+        <line x1="150" y1="120" x2="166" y2="140" stroke="#fff" strokeWidth="1.2" />
+        <line x1="182" y1="120" x2="166" y2="140" stroke="#fff" strokeWidth="1.2" />
+        <circle cx="166" cy="142" r="3.5" fill="#0A0A0A" />
       </g>
       <text x="100" y="82" fontSize="26" textAnchor="middle" fontWeight="800" fill="#fff" className="qw-pulse">
         GET OFF!
@@ -126,12 +131,6 @@ function LastStanding() {
           <circle cx={x + 48} cy="102" r="3.5" fill="#0A0A0A" />
         </g>
       ))}
-      <text x="100" y="38" textAnchor="middle" fontSize="16" fontWeight="800" fill="#fff">
-        5,000 → 20
-      </text>
-      <text x="100" y="180" textAnchor="middle" fontSize="13" fontWeight="700" fill="#fff" className="qw-glow">
-        8 PM LIVE SHOW
-      </text>
     </svg>
   );
 }
@@ -281,7 +280,31 @@ function Double() {
   );
 }
 
+function BigWheel() {
+  const colors = ["#EF4444", "#06B6D4", "#F59E0B", "#F97316", "#22C55E", "#EAB308", "#8B5CF6", "#DC2626", "#6366F1", "#0EA5E9", "#EC4899", "#14B8A6"];
+  const slice = (Math.PI * 2) / colors.length;
+  const r = 70;
+  return (
+    <svg viewBox="0 0 200 200" className="w-full h-full">
+      <Bg id="g-wheel" from="#4C1D95" to="#DB2777" />
+      <g transform="translate(100 108)">
+        <circle r={r + 8} fill="#1F1147" stroke="#FACC15" strokeWidth="2" />
+        <g className="qw-spin" style={{ animationDuration: "6s" }}>
+          {colors.map((c, i) => {
+            const a0 = i * slice;
+            const a1 = a0 + slice;
+            return <path key={c} d={`M0 0 L${Math.cos(a0) * r} ${Math.sin(a0) * r} A${r} ${r} 0 0 1 ${Math.cos(a1) * r} ${Math.sin(a1) * r} Z`} fill={c} stroke="#fff" strokeWidth="1" />;
+          })}
+          <circle r="14" fill="#0A0A0A" stroke="#FACC15" strokeWidth="3" />
+        </g>
+        <polygon points="-10,-86 10,-86 0,-66" fill="#FACC15" stroke="#0A0A0A" strokeWidth="2" />
+      </g>
+    </svg>
+  );
+}
+
 export const ART = {
+  "big-wheel": BigWheel,
   seven: Seven,
   double: Double,
   "hop-off": HopOff,

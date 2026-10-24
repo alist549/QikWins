@@ -1,5 +1,6 @@
 // Plays the demo end to end in a phone-sized Chromium and saves screenshots
-// to docs/screenshots. Needs the server (Backend, e.g. STORE=memory) and the
+// to docs/screenshots, plus a screen recording cut into short clips of each
+// game in motion (docs/clips, needs ffmpeg). Needs the server (Backend, e.g. STORE=memory) and the
 // website (Frontend) running:
 //   API_URL=http://localhost:3000 WEB_URL=http://localhost:5173 node play.js
 // A few bot players join every round so the pools look alive.
@@ -9,6 +10,9 @@ const { chromium } = require("playwright");
 const API = process.env.API_URL || "http://localhost:3000";
 const WEB = process.env.WEB_URL || "http://localhost:5173";
 const OUT = process.env.OUT_DIR || path.join(__dirname, "..", "docs", "screenshots");
+const CLIPS = process.env.CLIP_DIR || path.join(__dirname, "..", "docs", "clips");
+const fs = require("fs");
+const { execFileSync } = require("child_process");
 const BOTS = ["Rudo", "Wanjiru", "Chidi", "Amara", "Farai", "Kwame", "Thandi", "Tunde", "Nomsa", "Kofi"];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -35,21 +39,25 @@ async function startBots() {
   let running = true;
   (async () => {
     while (running) {
-      const hop = await call("/games/hop-off");
-      if (hop.phase === "boarding" && hop.roundId !== hopRound) {
-        hopRound = hop.roundId;
-        for (const token of bots) {
-          await call("/games/hop-off/join", { method: "POST", token, body: { stake: pick([25, 50, 100, 200]), presetStop: Math.random() < 0.4 ? null : 1 + Math.floor(Math.random() * 6) } });
-          await sleep(300);
+      try {
+        const hop = await call("/games/hop-off");
+        if (hop.phase === "boarding" && hop.roundId !== hopRound) {
+          hopRound = hop.roundId;
+          for (const token of bots) {
+            await call("/games/hop-off/join", { method: "POST", token, body: { stake: pick([25, 50, 100, 200]), presetStop: Math.random() < 0.4 ? null : 1 + Math.floor(Math.random() * 6) } });
+            await sleep(300);
+          }
         }
-      }
-      const dog = await call("/games/underdog");
-      if (dog.phase === "open" && dog.roundId !== dogRound) {
-        dogRound = dog.roundId;
-        for (const token of bots) {
-          await call("/games/underdog/stake", { method: "POST", token, body: { side: pick(["a", "b"]), stake: pick([25, 50, 100]) } });
-          await sleep(200);
+        const dog = await call("/games/underdog");
+        if (dog.phase === "open" && dog.roundId !== dogRound) {
+          dogRound = dog.roundId;
+          for (const token of bots) {
+            await call("/games/underdog/stake", { method: "POST", token, body: { side: pick(["a", "b"]), stake: pick([25, 50, 100]) } });
+            await sleep(200);
+          }
         }
+      } catch {
+        // The server can drop a keep-alive connection; try again.
       }
       await sleep(500);
     }
@@ -69,8 +77,26 @@ async function waitFor(fn, timeout = 90000) {
 
 (async () => {
   const stopBots = await startBots();
-  const browser = await chromium.launch();
-  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: "light" });
+  fs.mkdirSync(OUT, { recursive: true });
+  fs.mkdirSync(CLIPS, { recursive: true });
+  const rawDir = path.join(CLIPS, "raw");
+  const browser = await chromium.launch({ args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--autoplay-policy=no-user-gesture-required"] });
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    deviceScaleFactor: 2,
+    colorScheme: "light",
+    recordVideo: { dir: rawDir, size: { width: 390, height: 844 } },
+  });
+  const page = await context.newPage();
+  const t0 = Date.now();
+  const clips = [];
+  let clipStart = null;
+  const startClip = () => (clipStart = (Date.now() - t0) / 1000);
+  const endClip = (name) => {
+    clips.push({ name, from: clipStart, to: (Date.now() - t0) / 1000 });
+    clipStart = null;
+  };
+
   let n = 0;
   const shot = async (name, { wait = 700, target = page } = {}) => {
     await sleep(wait);
@@ -79,12 +105,13 @@ async function waitFor(fn, timeout = 90000) {
     await target.screenshot({ path: path.join(OUT, file) });
     console.log("saved", file);
   };
-  const result = () => page.locator('[aria-live="polite"]').waitFor({ timeout: 60000 });
+  const result = (timeout = 90000) => page.locator('[aria-live="polite"]').first().waitFor({ timeout });
 
   // Lobby, signed out, then the demo sign-in.
   await page.goto(WEB);
+  startClip();
   await page.getByText("All games").waitFor();
-  await shot("lobby", { wait: 1500 });
+  await shot("lobby", { wait: 1800 });
   await page.getByRole("link", { name: "Play free" }).click();
   await page.getByPlaceholder("Tendai").fill("Tendai");
   await page.getByPlaceholder("+263 77 123 4567").fill("+263 77 123 4567");
@@ -95,12 +122,64 @@ async function waitFor(fn, timeout = 90000) {
   await waitFor(async () => (await call("/games/hop-off")).riders > 3);
   await page.locator("#games").scrollIntoViewIfNeeded();
   await page.mouse.wheel(0, 260);
-  await shot("lobby-games", { wait: 1200 });
+  await sleep(1500);
+  endClip("lobby");
+  await shot("lobby-games", { wait: 200 });
 
-  // 7x: take a seat, two players join, demo players fill the rest, roll.
+  // Big Wheel: back a segment, watch it spin.
+  await page.goto(`${WEB}/play/big-wheel`);
+  await waitFor(async () => {
+    const s = await call("/games/big-wheel");
+    return s.phase === "open" && s.endsAt - Date.now() > 7000;
+  });
+  startClip();
+  await sleep(2500);
+  const wheel = await call("/games/big-wheel");
+  const empty = wheel.pays.findIndex((x) => x == null);
+  await page.getByRole("button", { name: /^(Cherry|Diamond|Star|Fire|Clover|Crown|Bolt|Target|Moon|Dice|Rocket|Rainbow)/ }).nth(empty >= 0 ? empty : 3).click();
+  await page.getByRole("radio", { name: "$2.00" }).click();
+  await page.getByRole("button", { name: /^Stake / }).click();
+  await shot("big-wheel-staked", { wait: 1200 });
+  await waitFor(async () => (await call("/games/big-wheel")).phase === "spinning", 30000);
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+  await shot("big-wheel-spinning", { wait: 1800 });
+  await waitFor(async () => (await call("/games/big-wheel")).phase === "result", 30000);
+  await shot("big-wheel-result", { wait: 2500 });
+  endClip("big-wheel");
+
+  // Last Standing: join the knockout and play it out.
+  await page.goto(`${WEB}/play/last-standing`);
+  await page.getByRole("radio", { name: "$1.00" }).click();
+  await shot("last-standing-join");
+  startClip();
+  await page.getByRole("button", { name: /Join the knockout/ }).click();
+  await page.getByText(/starts when full/).waitFor();
+  await shot("last-standing-filling", { wait: 1500 });
+  await page.getByText(/Round 1/).waitFor({ timeout: 30000 });
+  await shot("last-standing-question", { wait: 600 });
+  let shotReveal = false;
+  const end = Date.now() + 120000;
+  while (Date.now() < end) {
+    if (await page.locator('[aria-live="polite"]').isVisible()) break;
+    const sides = page.locator("button.h-32:not([disabled])");
+    if ((await sides.count()) === 2) {
+      await sides.nth(Math.random() < 0.5 ? 0 : 1).click().catch(() => {});
+    }
+    if (!shotReveal && (await page.getByText(/survives|Knocked out!/).first().isVisible().catch(() => false))) {
+      shotReveal = true;
+      await shot("last-standing-reveal", { wait: 900 });
+    }
+    await sleep(400);
+  }
+  await result(30000);
+  await shot("last-standing-result", { wait: 2500 });
+  endClip("last-standing");
+
+  // 7x: take a seat, players join, practice players fill the rest, roll.
   await page.goto(`${WEB}/play/seven`);
   await page.getByRole("radio", { name: "$2.00" }).click();
   await shot("7x-pick-stake");
+  startClip();
   await page.getByRole("button", { name: /Take a seat/ }).click();
   await page.getByText("Filling the table").waitFor();
   for (const token of bots.slice(0, 3)) await call("/games/seven/join", { method: "POST", token, body: { stake: 200 } });
@@ -108,14 +187,16 @@ async function waitFor(fn, timeout = 90000) {
   await page.getByText("your total").waitFor({ timeout: 30000 });
   await shot("7x-rolling", { wait: 1200 });
   await page.getByRole("button", { name: /Re-roll all 3/ }).click();
-  await shot("7x-re-rolled", { wait: 1200 });
+  await shot("7x-re-rolled", { wait: 1500 });
   await result();
   await shot("7x-result", { wait: 3000 });
+  endClip("7x");
 
   // x2: find an opponent and play rock-paper-scissors to the end.
   await page.goto(`${WEB}/play/double`);
   await page.getByRole("radio", { name: "$2.00" }).click();
   await shot("x2-pick-stake");
+  startClip();
   await page.getByRole("button", { name: /Find opponent/ }).click();
   await page.getByText("Finding an opponent").waitFor();
   await shot("x2-finding-opponent", { wait: 900 });
@@ -129,14 +210,15 @@ async function waitFor(fn, timeout = 90000) {
       throws += 1;
       if (throws === 1) {
         await page.getByText(/THE THROW|TIE/).waitFor({ timeout: 20000 });
-        await shot("x2-throw-revealed", { wait: 300 });
+        await shot("x2-throw-revealed", { wait: 600 });
       }
     }
     await sleep(500);
   }
   await shot("x2-result", { wait: 3000 });
+  endClip("x2");
 
-  // Hop Off: board with $2 and ride.
+  // Hop Off: fly the world tour and hop off.
   await page.goto(`${WEB}/play/hop-off`);
   await waitFor(async () => {
     const s = await call("/games/hop-off");
@@ -144,17 +226,19 @@ async function waitFor(fn, timeout = 90000) {
   });
   await page.getByRole("radio", { name: "$2.00" }).click();
   await shot("hop-off-boarding");
-  await page.getByRole("button", { name: /Board ·/ }).click();
+  startClip();
+  await page.getByRole("button", { name: /Fly ·/ }).click();
   await page.getByText(/Aboard ·/).waitFor();
   await waitFor(async () => (await call("/games/hop-off")).phase !== "boarding");
   if ((await call("/games/hop-off")).phase === "riding") {
-    await sleep(2600);
-    await shot("hop-off-riding", { wait: 0 });
+    await sleep(2800);
+    await shot("hop-off-flying", { wait: 0 });
     const getOff = page.locator("button.qw-pulse");
     if (await getOff.isVisible()) await getOff.click({ force: true, timeout: 3000 }).catch(() => {});
   }
   await result();
-  await shot("hop-off-result", { wait: 3000 });
+  await shot("hop-off-result", { wait: 2500 });
+  endClip("hop-off");
 
   // Underdog: back side A.
   await page.goto(`${WEB}/play/underdog`);
@@ -162,15 +246,17 @@ async function waitFor(fn, timeout = 90000) {
     const s = await call("/games/underdog");
     return s.phase === "open" && s.endsAt - Date.now() > 6000 && s.players >= 6;
   });
+  startClip();
   await page.getByText("Side A").click();
   await page.getByRole("button", { name: /Back .* with/ }).click();
   await page.getByText(/You've backed/).waitFor();
   await shot("underdog-backed");
   await result();
   await shot("underdog-result", { wait: 3000 });
+  endClip("underdog");
 
   await page.goto(`${WEB}/fair`);
-  await page.getByText("Best roll").first().waitFor();
+  await page.getByText(/won · /).first().waitFor();
   await shot("results-log");
 
   await page.goto(`${WEB}/play-safe`);
@@ -181,9 +267,20 @@ async function waitFor(fn, timeout = 90000) {
   const dark = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, colorScheme: "dark" });
   await dark.goto(WEB);
   await dark.getByText("All games").waitFor();
-  await shot("lobby-dark", { wait: 1500, target: dark });
+  await shot("lobby-dark", { wait: 1800, target: dark });
 
   stopBots();
+  const video = page.video();
+  await context.close();
+  const raw = await video.path();
+  // Cut the recording into one short MP4 per game.
+  for (const c of clips) {
+    const out = path.join(CLIPS, `${c.name}.mp4`);
+    const length = Math.min(c.to - c.from, 40);
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-ss", c.from.toFixed(2), "-i", raw, "-t", length.toFixed(2), "-vf", "scale=390:-2,fps=30", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "22", "-preset", "veryfast", "-movflags", "+faststart", "-an", out]);
+    console.log("clip", out, `${length.toFixed(1)}s`);
+  }
+  fs.rmSync(rawDir, { recursive: true, force: true });
   await browser.close();
   console.log("Done");
   process.exit(0);

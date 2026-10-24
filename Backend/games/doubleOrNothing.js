@@ -62,7 +62,7 @@ function createDoubleOrNothing({ store, publish = () => {}, notify = () => {}, c
         wins: [match.wins[me], match.wins[them]],
         winsNeeded: config.WINS_NEEDED,
         you: { name: match.players[me].name },
-        opponent: { name: match.players[them].name, bot: match.players[them].bot },
+        opponent: { name: match.players[them].name },
         picked: Boolean(match.moves[me]),
         opponentPicked: Boolean(match.moves[them]),
         endsAt: match.endsAt,

@@ -3,6 +3,10 @@
 
 const num = (value, fallback) => (value === undefined || value === "" ? fallback : Number(value));
 
+// Practice players fill empty seats in the demo only. Real-money mode
+// (REAL_MONEY=on) always turns them off: the house must never play.
+const PRACTICE_PLAYERS = process.env.DEMO_OPPONENTS !== "off" && process.env.REAL_MONEY !== "on";
+
 // Shared by every game.
 const COMMON = {
   CURRENCY: process.env.CURRENCY || "USD",
@@ -56,10 +60,10 @@ const DOUBLE = {
   MOVE_MS: num(process.env.DOUBLE_MOVE_MS, 10000),
   REVEAL_MS: num(process.env.DOUBLE_REVEAL_MS, 2500),
   FEE_RATE: num(process.env.DOUBLE_FEE_RATE, 0.1),
-  // Demo only: if nobody else is waiting at your stake, a labelled demo bot
-  // takes the other seat after this long. DEMO_OPPONENTS=off turns it off.
+  // Demo only: if nobody else is waiting at your stake, a practice player
+  // takes the other seat after this long (see PRACTICE_PLAYERS).
   BOT_WAIT_MS: num(process.env.DOUBLE_BOT_WAIT_MS, 8000),
-  BOTS: process.env.DEMO_OPPONENTS !== "off",
+  BOTS: PRACTICE_PLAYERS,
 };
 
 // 7x: eight players at the same stake roll three dice each, with one
@@ -70,7 +74,37 @@ const SEVEN = {
   ROLL_MS: num(process.env.SEVEN_ROLL_MS, 8000),
   FEE_RATE: num(process.env.SEVEN_FEE_RATE, 0.1),
   BOT_WAIT_MS: num(process.env.SEVEN_BOT_WAIT_MS, 6000),
-  BOTS: process.env.DEMO_OPPONENTS !== "off",
+  BOTS: PRACTICE_PLAYERS,
 };
 
-module.exports = { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN };
+// Big Wheel: everyone stakes on one or more of 12 segments; a provably fair
+// spin picks one. Stakes on the winning segment share the whole wheel (less
+// a fee from the losing stakes), so a lonely segment can pay 50x or more.
+// If nobody backed the winner, the wheel (less the fee) rolls over.
+const WHEEL = {
+  SEGMENTS: 12,
+  OPEN_MS: num(process.env.WHEEL_OPEN_MS, 20000),
+  SPIN_MS: num(process.env.WHEEL_SPIN_MS, 6000),
+  RESULT_MS: num(process.env.WHEEL_RESULT_MS, 6000),
+  FEE_RATE: num(process.env.WHEEL_FEE_RATE, 0.1),
+  // Demo only: practice players put a few stakes on each spin.
+  BOTS: PRACTICE_PLAYERS,
+  BOT_PLAYERS: num(process.env.WHEEL_BOT_PLAYERS, 9),
+};
+
+// Last Standing: a knockout for up to 32 players at one stake. Each round
+// asks a two-way question; only the side fewer players picked survives.
+// The last ones standing share every stake (less a fee from the knocked-out
+// players' stakes): about 29x for a lone winner.
+const STANDING = {
+  SEATS: num(process.env.STANDING_SEATS, 32),
+  PICK_MS: num(process.env.STANDING_PICK_MS, 8000),
+  REVEAL_MS: num(process.env.STANDING_REVEAL_MS, 3500),
+  MAX_ROUNDS: 8,
+  FEE_RATE: num(process.env.STANDING_FEE_RATE, 0.1),
+  BOT_WAIT_MS: num(process.env.STANDING_BOT_WAIT_MS, 6000),
+  BOTS: PRACTICE_PLAYERS,
+  QUESTIONS: UNDERDOG.QUESTIONS,
+};
+
+module.exports = { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, STANDING };

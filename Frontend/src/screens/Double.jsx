@@ -9,6 +9,8 @@ import { useCountdown } from "../lib/useGame";
 import { usePersonal } from "../lib/usePersonal";
 import { useRules } from "../lib/useRules";
 import { api } from "../lib/api";
+import { sfx, useCountdownTicks } from "../lib/sound";
+import { motion } from "motion/react";
 import { money } from "../lib/money";
 
 const HAND = { rock: "✊", paper: "✋", scissors: "✌️" };
@@ -46,10 +48,20 @@ function Double() {
   const match = state?.match;
   const seconds = useCountdown(match?.endsAt);
   const queuedFor = useCountdown(state?.status === "queued" ? Date.now() + 1 : null);
+  const throws = match?.history?.length || 0;
+  const lastResult = match?.history?.[throws - 1]?.result;
+  useCountdownTicks(state?.status === "playing" && !match?.picked ? seconds : 0);
+  useEffect(() => {
+    if (state?.status === "playing" && throws === 0) sfx("join");
+  }, [state?.status, match?.id, throws]);
+  useEffect(() => {
+    if (throws > 0) sfx(lastResult === "win" ? "hit" : lastResult === "lose" ? "lose" : "reveal");
+  }, [throws, lastResult]);
 
   useEffect(() => {
     if (state?.status !== "done" || !match || celebrated.current === match.id) return;
     celebrated.current = match.id;
+    sfx(match.result.won ? "bigWin" : "lose");
     if (match.result.won) {
       setBurst(match.result.payout - match.stake);
       const id = setTimeout(() => setBurst(null), 2600);
@@ -76,7 +88,7 @@ function Double() {
   const waiting = state?.lobby?.waiting || {};
 
   return (
-    <Page title="x2 · Double or Nothing" back="/">
+    <Page title="x2 · Double or Nothing" back="/" track="game">
       {(status === "idle" || !state) && (
         <div className="flex flex-col gap-4 animate-sheet-up">
           <div className="relative h-48 rounded-[28px] overflow-hidden shadow-float">
@@ -157,20 +169,28 @@ function Double() {
           <div className="rounded-[28px] bg-surface h-40 flex items-center justify-around relative overflow-hidden">
             {last ? (
               <>
-                <span key={`y${match.history.length}`} className="text-7xl animate-pop">{HAND[last.you]}</span>
+                <motion.span key={`y${match.history.length}`} className="text-7xl inline-block" initial={{ x: -90, rotate: -40, scale: 0.4 }} animate={{ x: 0, rotate: 0, scale: last.result === "win" ? 1.25 : 1 }} transition={{ type: "spring", stiffness: 420, damping: 14 }}>
+                  {HAND[last.you]}
+                </motion.span>
                 <span className={`absolute top-3 left-1/2 -translate-x-1/2 h-7 px-3 rounded-full text-xs font-extrabold inline-flex items-center ${last.result === "win" ? "bg-[#FACC15] text-black" : last.result === "lose" ? "bg-[#DC2626] text-white" : "bg-primary text-on-primary"}`}>
                   {last.result === "win" ? "YOU WIN THE THROW" : last.result === "lose" ? "THEY WIN THE THROW" : "TIE · AGAIN!"}
                 </span>
-                <span key={`t${match.history.length}`} className="text-7xl animate-pop -scale-x-100 inline-block">
-                  {HAND[last.them]}
+                <span className="inline-block -scale-x-100">
+                  <motion.span key={`t${match.history.length}`} className="text-7xl inline-block" initial={{ x: -90, rotate: -40, scale: 0.4 }} animate={{ x: 0, rotate: 0, scale: last.result === "lose" ? 1.25 : 1 }} transition={{ type: "spring", stiffness: 420, damping: 14 }}>
+                    {HAND[last.them]}
+                  </motion.span>
                 </span>
               </>
             ) : (
               <>
-                <span className="text-7xl qw-tug">✊</span>
-                <span className="text-3xl font-extrabold text-muted">VS</span>
-                <span className="text-7xl qw-tug -scale-x-100 inline-block" style={{ animationDelay: "0.6s" }}>
+                <motion.span className="text-7xl inline-block" animate={{ y: [0, -22, 0], rotate: [0, -12, 0] }} transition={{ repeat: Infinity, duration: 0.55 }}>
                   ✊
+                </motion.span>
+                <span className="text-3xl font-extrabold text-muted">VS</span>
+                <span className="inline-block -scale-x-100">
+                  <motion.span className="text-7xl inline-block" animate={{ y: [0, -22, 0], rotate: [0, -12, 0] }} transition={{ repeat: Infinity, duration: 0.55 }}>
+                    ✊
+                  </motion.span>
                 </span>
               </>
             )}

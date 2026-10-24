@@ -7,13 +7,23 @@ QikWins is a website of live pool games where players compete against each other
 
 This first version runs in **demo mode**: every player gets $100 of practice money and no real cash moves. It's built on the same stack and design as [QikDrive](https://github.com/alist549/QikDriveZw): React, Vite and Tailwind on the web, Node, Express, MongoDB and Socket.IO on the server, Inter, black and white with QikDrive blue.
 
-| Lobby | 7x, rolling | x2, throw | Hop Off, riding | Underdog |
+| Lobby | Big Wheel | Last Standing | 7x | Hop Off |
 | --- | --- | --- | --- | --- |
-| ![](docs/screenshots/01-lobby.png) | ![](docs/screenshots/07-7x-re-rolled.png) | ![](docs/screenshots/12-x2-throw-revealed.png) | ![](docs/screenshots/15-hop-off-riding.png) | ![](docs/screenshots/18-underdog-result.png) |
+| ![](docs/screenshots/01-lobby.png) | ![](docs/screenshots/05-big-wheel-spinning.png) | ![](docs/screenshots/10-last-standing-reveal.png) | ![](docs/screenshots/14-7x-rolling.png) | ![](docs/screenshots/23-hop-off-flying.png) |
+
+Short clips of each game in motion are in `docs/clips`.
 
 ## The games
 
-The lobby shows every game as an animated tile with its live player count. Four are playable in the demo; the rest are shown as coming soon.
+The lobby shows every game as an animated tile with its live player count and the most it can pay. Six are playable in the demo; the rest are shown as coming soon.
+
+### Big Wheel
+
+A prize wheel with 12 segments. While it's open (20 seconds), players stake on any segments and each segment shows what it would pay right now. Then it spins. Stakes on the winning segment share the whole wheel by stake, less a 10% fee from the losing stakes, so a segment few people backed can pay 50x or more. If nobody backed the winner, the wheel (less the fee) rolls over into the next spin as a jackpot. The winning segment is drawn from a seed whose SHA-256 fingerprint is shown before anyone stakes, and the seed is published after.
+
+### Last Standing
+
+A knockout for 32 players at one stake. Each round asks a two-way question with 8 seconds to answer, and only the side fewer players picked survives (a tie keeps both; not answering knocks you out). After one player is left, or 8 rounds, the survivors share every stake, less a 10% fee from the knocked-out players' stakes: about 29x for a lone winner.
 
 ### 7x
 
@@ -23,21 +33,27 @@ Eight players at the same stake roll three dice each, with one re-roll. The high
 
 Two players at the same stake play rock-paper-scissors, 10 seconds a throw, ties replayed. First to 2 wins takes both stakes, less a 10% fee from the loser's stake. Cancel for a full refund while waiting for an opponent.
 
-In the demo, if nobody else is waiting at your stake, labelled demo players ("Zola (bot)") fill the empty seats in 7x and x2 after a few seconds. Set `DEMO_OPPONENTS=off` to turn them off.
+In the demo, practice players (demo accounts with ordinary names and practice money) fill empty seats so nobody waits; the sign-in screen says so. Set `DEMO_OPPONENTS=off` to turn them off. With `REAL_MONEY=on` they are always off: in real-money play the house must never take a seat.
 
 ### Hop Off
 
-A shared ride drives a 10-stop route, one stop every 2.5 seconds. Players board with $0.25 to $5, then tap **Get off** whenever they like (or preset a stop for weak signal). A hidden checkpoint catches everyone still aboard.
+A shared flight visits 10 real cities, one every 2.5 seconds, on one of four routes (World Tour, Europe, Americas, Africa & Asia). Players board with $0.25 to $5, then tap **Hop off!** whenever they like (or preset a city for weak signal). A hidden checkpoint city catches everyone still aboard.
 
 - Riders who got off keep their stake and share the caught riders' money, after a 10% fee, weighted by stake times stops ridden. A rider who gets off never gets back less than they staked.
 - If nobody is caught, everyone gets their stake back and QikWins earns nothing.
 - If everyone is caught, the money (less the fee) rides on into the next ride.
 - The checkpoint is fixed before boarding: its SHA-256 fingerprint is shown while people board and the seed is revealed after, so anyone can check it (see `Backend/services/fair.js`).
-- The look changes per city (Harare kombi, Nairobi matatu, Lagos danfo, London night bus); the rules and maths don't.
+- The routes change the cities and the sky; the rules and maths don't.
 
 ### Underdog
 
 A two-sided question ("Tea or coffee?"). Players back a side for 45 seconds. Side totals stay hidden until the clock stops; then the side with **less** money behind it wins and shares the other side's stakes after a 10% fee. A tie or a one-sided round refunds everyone with no fee. The players decide the result, so there's no random draw to trust.
+
+## Motion and sound
+
+- [Motion](https://motion.dev) (the React animation library) drives the interface: springy chips, counters that count up, hands that slam in, leaderboards that re-sort live.
+- [PixiJS](https://pixijs.com) draws the real-time game scenes in WebGL: Hop Off's flight over the world and the Big Wheel. It loads only on those screens.
+- [Tone.js](https://tonejs.github.io) makes every sound effect and both music loops (lobby and in-game) in the browser from code, so there are no audio files to license. The speaker button in the header mutes it all, and nothing plays until the player's first tap.
 
 ## Responsible play
 
@@ -70,12 +86,14 @@ Docker: `docker compose up --build`, then open http://localhost:5173.
 Backend/
   config/games.js     game rules: stakes, fees, timings, Underdog questions
   services/payouts.js pool maths in whole cents (nothing created or lost)
-  services/fair.js    commit-reveal seeds for Hop Off checkpoints
+  services/fair.js    commit-reveal seeds for Hop Off checkpoints and Big Wheel spins
   services/store.js   players and the results log (MongoDB or in memory)
-  games/              Hop Off, Underdog, x2 and 7x engines
-  services/bots.js    labelled demo players for empty x2 and 7x seats
+  games/              Hop Off, Underdog, x2, 7x, Big Wheel and Last Standing engines
+  services/bots.js    practice players for empty seats (demo only)
   app.js, socket.js   HTTP API and live updates
 Frontend/             React website
+  src/scenes/         PixiJS scenes (Hop Off flight, Big Wheel)
+  src/lib/sound.js    sound effects and music (Tone.js)
 e2e/                  Playwright playthrough and screenshots
 ```
 

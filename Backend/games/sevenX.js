@@ -58,7 +58,6 @@ function createSevenX({ store, publish = () => {}, notify = () => {}, config = S
         pot: table.stake * table.seats.length,
         seats: table.seats.map((s) => ({
           name: s.name,
-          bot: Boolean(s.bot),
           you: s.userId === key,
           dice: s.dice,
           total: s.dice ? sumOf(s.dice) : null,

@@ -3,8 +3,11 @@ import { BadgeCheck } from "lucide-react";
 import Page from "../components/Page";
 import { api } from "../lib/api";
 import { money, percent } from "../lib/money";
+import { SEGMENTS } from "../scenes/wheel";
 
 const TABS = [
+  ["big-wheel", "Big Wheel"],
+  ["last-standing", "Last Standing"],
   ["seven", "7x"],
   ["double", "x2"],
   ["hop-off", "Hop Off"],
@@ -65,7 +68,74 @@ function SevenRound({ r }) {
   );
 }
 
-const ROUND = { "hop-off": HopOffRound, underdog: UnderdogRound, double: DoubleRound, seven: SevenRound };
+function WheelRound({ r }) {
+  const [check, setCheck] = useState(null);
+  const s = SEGMENTS[r.winning];
+  const verify = async () => {
+    const res = await api(`/fair/verify?game=big-wheel&seed=${r.seed}&hash=${r.hash}&roundId=${encodeURIComponent(r.id)}&stop=${r.winning + 1}`).catch(() => null);
+    setCheck(res);
+  };
+  return (
+    <li className="rounded-3xl border border-line p-4">
+      <div className="flex items-center justify-between">
+        <span className="font-semibold">
+          {s.icon} {s.name} won{r.multiplier ? ` · paid ${r.multiplier}x` : " · rolled over"}
+        </span>
+        <span className="text-xs text-muted">{new Date(r.settledAt).toLocaleTimeString()}</span>
+      </div>
+      <div className="mt-1 text-sm text-muted tabular">
+        {r.bets.length} stakes · wheel {money(r.pool)}
+        {r.carryIn > 0 && ` + ${money(r.carryIn)} rolled in`} · fee {money(r.fee)} · paid {money(r.paidOut)}
+        {r.carryOut > 0 && ` · ${money(r.carryOut)} rolls over`}
+      </div>
+      <ul className="mt-2 text-sm divide-y divide-line">
+        {r.bets.map((x, i) => (
+          <li key={i} className="py-1.5 flex justify-between tabular">
+            <span>
+              {x.name} · {SEGMENTS[x.segment].icon} · {money(x.stake)}
+            </span>
+            <span className={x.payout > 0 ? "font-semibold" : "text-muted"}>{money(x.payout)}</span>
+          </li>
+        ))}
+      </ul>
+      <button type="button" onClick={verify} className="mt-2 h-9 px-4 rounded-full bg-surface text-sm font-semibold inline-flex items-center gap-1.5">
+        <BadgeCheck size={16} className="text-brand" />
+        {check ? (check.ok ? "Verified: seed matches, segment matches" : "Does not match") : "Verify this spin"}
+      </button>
+    </li>
+  );
+}
+
+function StandingRound({ r }) {
+  return (
+    <li className="rounded-3xl border border-line p-4">
+      <div className="flex items-center justify-between">
+        <span className="font-semibold">
+          {r.survivors} of {r.players.length} standing after {r.rounds} rounds
+        </span>
+        <span className="text-xs text-muted">{new Date(r.settledAt).toLocaleTimeString()}</span>
+      </div>
+      <div className="mt-1 text-sm text-muted tabular">
+        {money(r.stake)} each · pot {money(r.pool)} · fee {money(r.fee)} · each winner {money(r.each)} ({r.multiplier}x)
+      </div>
+      <ol className="mt-2 text-sm flex flex-col gap-1">
+        {r.history.map((h) => (
+          <li key={h.round} className="tabular">
+            Round {h.round}: {h.question[0]} {h.counts.a} vs {h.question[1]} {h.counts.b} ·{" "}
+            {h.safe === "both" ? "everyone through" : `${h.question[h.safe === "a" ? 0 : 1]} survives`} · {h.left} left
+          </li>
+        ))}
+      </ol>
+      <div className="mt-2 text-sm">
+        Winners: {r.players.filter((p) => p.payout > 0).map((p) => p.name).join(", ")}
+      </div>
+    </li>
+  );
+}
+
+const ROUND = {
+  "big-wheel": WheelRound,
+  "last-standing": StandingRound, "hop-off": HopOffRound, underdog: UnderdogRound, double: DoubleRound, seven: SevenRound };
 
 function HopOffRound({ r }) {
   const [check, setCheck] = useState(null);
@@ -135,7 +205,7 @@ function UnderdogRound({ r }) {
 // The public settlement log: every finished round, its pool, the fee and
 // every payout. Hop Off rounds can be re-checked from their revealed seed.
 function Fairness() {
-  const [tab, setTab] = useState("seven");
+  const [tab, setTab] = useState("big-wheel");
   const Round = ROUND[tab];
   const [rounds, setRounds] = useState(null);
 
@@ -154,7 +224,7 @@ function Fairness() {
       </p>
       <div className="mt-4 flex gap-2 overflow-x-auto">
         {TABS.map(([key, label]) => (
-          <button key={key} type="button" onClick={() => setTab(key)} className={`h-9 px-4 rounded-full text-sm font-semibold ${tab === key ? "bg-gradient-to-r from-[#7C3AED] to-[#EC4899] text-white" : "bg-surface"}`}>
+          <button key={key} type="button" onClick={() => setTab(key)} className={`h-9 px-4 shrink-0 whitespace-nowrap rounded-full text-sm font-semibold ${tab === key ? "bg-gradient-to-r from-[#7C3AED] to-[#EC4899] text-white" : "bg-surface"}`}>
             {label}
           </button>
         ))}

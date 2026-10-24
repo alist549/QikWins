@@ -4,9 +4,11 @@ import GameArt from "./GameArt";
 
 // The lobby's banner: slides that change every few seconds, swipe-free.
 const SLIDES = [
+  { art: "big-wheel", kicker: "Jackpot rolls over", title: "Spin for 50x and more.", cta: "Play Big Wheel", to: "/play/big-wheel", bg: "from-[#4C1D95] via-[#DB2777] to-[#F97316]" },
+  { art: "last-standing", kicker: "32 players · 1 winner", title: "Be the last one standing.", cta: "Play Last Standing", to: "/play/last-standing", bg: "from-[#7F1D1D] to-[#F97316]" },
   { art: "seven", kicker: "8 players · 1 table", title: "Out-roll 7 players. Win 7x.", cta: "Play 7x", to: "/play/seven", bg: "from-[#F97316] via-[#EC4899] to-[#7C3AED]" },
   { art: "double", kicker: "Head to head", title: "Rock, paper, x2!", cta: "Play x2", to: "/play/double", bg: "from-[#00C2FF] to-[#7C3AED]" },
-  { art: "hop-off", kicker: "Live now", title: "Ride. Dare. Jump off!", cta: "Play Hop Off", to: "/play/hop-off", bg: "from-[#0040A0] to-[#007DFE]" },
+  { art: "hop-off", kicker: "Fly the world", title: "London to Tokyo. Hop off in time!", cta: "Play Hop Off", to: "/play/hop-off", bg: "from-[#0040A0] to-[#007DFE]" },
   { art: "underdog", kicker: "Beat the crowd", title: "The smaller side wins.", cta: "Play Underdog", to: "/play/underdog", bg: "from-[#4C1D95] to-[#DB2777]" },
   { art: "last-standing", kicker: "Why QikWins", title: "The house never plays. You do.", cta: "See why", to: "/why", bg: "from-[#0A0A0A] to-[#3F3F46]" },
 ];

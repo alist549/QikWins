@@ -116,4 +116,29 @@ function settleSeven(players, { stake, feeRate }) {
   };
 }
 
-module.exports = { splitByWeight, settleHopOff, settleUnderdog, settleDuel, settleSeven };
+// Big Wheel: bets [{ segment, stake }], the winning segment, and any
+// rolled-over money. Winners share everything by stake; the fee comes only
+// from the losing stakes. With no winners, the wheel less the fee rolls over.
+function settleWheel(bets, { winning, feeRate, carryIn = 0 }) {
+  const total = bets.reduce((t, b) => t + b.stake, 0);
+  const winners = bets.map((b, i) => [b, i]).filter(([b]) => b.segment === winning);
+  const winStake = winners.reduce((t, [b]) => t + b.stake, 0);
+  const losing = total - winStake;
+  const fee = Math.floor(losing * feeRate);
+  const payouts = bets.map(() => 0);
+  if (!winners.length) return { fee, payouts, paidOut: 0, carryOut: total - fee + carryIn };
+  const pot = total - fee + carryIn;
+  const shares = splitByWeight(pot, winners.map(([b]) => b.stake));
+  winners.forEach(([, i], k) => (payouts[i] = shares[k]));
+  return { fee, payouts, paidOut: pot, carryOut: 0 };
+}
+
+// Last Standing: everyone staked the same; survivors share it all, less a
+// fee from the knocked-out players' stakes.
+function settleStanding(players, survivors, { stake, feeRate }) {
+  const fee = Math.floor((players - survivors) * stake * feeRate);
+  const shares = splitByWeight(players * stake - fee, Array(survivors).fill(1));
+  return { fee, shares };
+}
+
+module.exports = { splitByWeight, settleHopOff, settleUnderdog, settleDuel, settleSeven, settleWheel, settleStanding };

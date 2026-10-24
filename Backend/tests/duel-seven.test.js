@@ -54,7 +54,7 @@ describe("Double or Nothing", () => {
     expect(game.state(a.id).match.wins).toEqual([1, 0]);
   });
 
-  test("a demo bot takes the empty seat", async () => {
+  test("a practice player takes the empty seat", async () => {
     const store = memoryStore();
     const game = createDoubleOrNothing({ store, autoRun: false });
     const [a] = await players(store, 1);
@@ -62,8 +62,8 @@ describe("Double or Nothing", () => {
     await game.botJoins(a.id, 100);
     const view = game.state(a.id);
     expect(view.status).toBe("playing");
-    expect(view.match.opponent.bot).toBe(true);
-    expect(view.match.opponent.name).toMatch(/\(bot\)/);
+    expect(view.match.opponent.name).not.toMatch(/bot/i);
+    expect(game.matchOf(a.id).players[1].bot).toBe(true); // known to the server only
   });
 });
 
@@ -114,6 +114,7 @@ describe("7x", () => {
     await game.fillWithBots(game.tableOf(a.id));
     const view = game.state(a.id);
     expect(view.status).toBe("rolling");
-    expect(view.table.seats.filter((s) => s.bot)).toHaveLength(7);
+    expect(view.table.seats).toHaveLength(8);
+    expect(game.tableOf(a.id).seats.filter((s) => s.bot)).toHaveLength(7);
   });
 });

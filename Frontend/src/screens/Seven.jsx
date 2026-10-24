@@ -11,6 +11,8 @@ import { useCountdown } from "../lib/useGame";
 import { usePersonal } from "../lib/usePersonal";
 import { useRules } from "../lib/useRules";
 import { api } from "../lib/api";
+import { motion } from "motion/react";
+import { sfx, useCountdownTicks } from "../lib/sound";
 import { money } from "../lib/money";
 
 const TONES = ["from-[#FF2D55] to-[#FF9500]", "from-[#7C3AED] to-[#EC4899]", "from-[#00C2FF] to-[#007DFE]", "from-[#16A34A] to-[#4ADE80]", "from-[#F59E0B] to-[#FACC15]", "from-[#0D9488] to-[#22D3EE]", "from-[#4338CA] to-[#818CF8]", "from-[#0A0A0A] to-[#52525B]"];
@@ -28,10 +30,18 @@ function Seven() {
   const table = state?.table;
   const seconds = useCountdown(table?.endsAt);
   const me = table?.seats.find((s) => s.you);
+  useCountdownTicks(state?.status === "rolling" ? seconds : 0);
+  useEffect(() => {
+    if (state?.status === "rolling") sfx("roll");
+  }, [state?.status, me?.rerolled]);
+  useEffect(() => {
+    if (state?.status === "waiting") sfx("click");
+  }, [state?.status, table?.seats.length]);
 
   useEffect(() => {
     if (state?.status !== "done" || !table || celebrated.current === table.id) return;
     celebrated.current = table.id;
+    sfx(me?.payout > table.stake ? "bigWin" : "lose");
     if (me?.payout > table.stake) {
       setBurst(me.payout - table.stake);
       const id = setTimeout(() => setBurst(null), 2800);
@@ -61,7 +71,7 @@ function Seven() {
   const myRank = me ? ranked.findIndex((s) => s.you) + 1 : null;
 
   return (
-    <Page title="7x" back="/">
+    <Page title="7x" back="/" track="game">
       {(status === "idle" || !state) && (
         <div className="flex flex-col gap-4 animate-sheet-up">
           <div className="relative h-52 rounded-[28px] overflow-hidden shadow-float">
@@ -183,7 +193,7 @@ function Seven() {
           {/* Live leaderboard */}
           <ol className="flex flex-col gap-1.5">
             {ranked.map((s, i) => (
-              <li key={`${s.name}-${i}`} className={`flex items-center gap-3 rounded-2xl px-3 py-2 transition-all ${s.you ? "bg-[#FACC15]/25 ring-2 ring-[#FACC15]" : "bg-surface"}`}>
+              <motion.li key={`${s.name}-${table.seats.indexOf(s)}`} layout transition={{ type: "spring", stiffness: 380, damping: 30 }} className={`flex items-center gap-3 rounded-2xl px-3 py-2 transition-all ${s.you ? "bg-[#FACC15]/25 ring-2 ring-[#FACC15]" : "bg-surface"}`}>
                 <span className="w-5 text-sm font-extrabold text-muted tabular">{i + 1}</span>
                 <span className="flex-1 font-bold truncate">
                   {s.you ? "You" : s.name}
@@ -196,7 +206,7 @@ function Seven() {
                 </span>
                 <span className={`w-9 text-right text-lg font-extrabold tabular ${s.total === best ? "text-[#FF2D55]" : ""}`}>{s.total}</span>
                 {status === "done" && s.payout > 0 && <span className="text-xs font-extrabold text-brand tabular">+{money(s.payout - table.stake)}</span>}
-              </li>
+              </motion.li>
             ))}
           </ol>
         </div>

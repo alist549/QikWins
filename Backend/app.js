@@ -3,7 +3,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN } = require("./config/games");
+const { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, STANDING } = require("./config/games");
 const { normalizePhone } = require("./utils/phone");
 const { signToken, requireUser, optionalUser } = require("./middlewares/auth");
 const { GameError } = require("./games/hopOff");
@@ -11,7 +11,7 @@ const fair = require("./services/fair");
 
 // The HTTP API. Players act through these routes; live round updates go
 // out over Socket.IO (socket.js).
-function createApp({ store, hopOff, underdog, double, seven }) {
+function createApp({ store, hopOff, underdog, double, seven, wheel, standing }) {
   const app = express();
   if (process.env.ENVIRONMENT !== "test") app.use(morgan("dev"));
   app.use(cors());
@@ -50,6 +50,8 @@ function createApp({ store, hopOff, underdog, double, seven }) {
       underdog: { feeRate: UNDERDOG.FEE_RATE, openMs: UNDERDOG.OPEN_MS },
       double: { feeRate: DOUBLE.FEE_RATE, winsNeeded: DOUBLE.WINS_NEEDED, moveMs: DOUBLE.MOVE_MS },
       seven: { feeRate: SEVEN.FEE_RATE, seats: SEVEN.SEATS, rollMs: SEVEN.ROLL_MS },
+      bigWheel: { feeRate: WHEEL.FEE_RATE, segments: WHEEL.SEGMENTS, openMs: WHEEL.OPEN_MS, spinMs: WHEEL.SPIN_MS },
+      lastStanding: { feeRate: STANDING.FEE_RATE, seats: STANDING.SEATS, pickMs: STANDING.PICK_MS, maxRounds: STANDING.MAX_ROUNDS },
     })
   );
 
@@ -124,9 +126,28 @@ function createApp({ store, hopOff, underdog, double, seven }) {
   app.post("/games/seven/reroll", auth, play(async (req) => seven.reroll(req.user.id)));
   app.post("/games/seven/dismiss", auth, play(async (req) => seven.dismiss(req.user.id)));
 
+  // Big Wheel: stake on any segments while the wheel is open.
+  if (wheel) {
+    app.get("/games/big-wheel", maybe, (req, res) => res.json(wheel.state(req.userId)));
+    app.post(
+      "/games/big-wheel/stake",
+      auth,
+      play((req) => wheel.stake(req.user.id, { segment: Number(req.body.segment), stake: Number(req.body.stake) }))
+    );
+  }
+
+  // Last Standing: a knockout where only the smaller side survives.
+  if (standing) {
+    app.get("/games/last-standing", maybe, (req, res) => res.json(standing.state(req.userId)));
+    app.post("/games/last-standing/join", auth, play((req) => standing.join(req.user.id, { stake: Number(req.body.stake) })));
+    app.post("/games/last-standing/leave", auth, play((req) => standing.leave(req.user.id)));
+    app.post("/games/last-standing/pick", auth, play(async (req) => standing.pick(req.user.id, req.body.side)));
+    app.post("/games/last-standing/dismiss", auth, play(async (req) => standing.dismiss(req.user.id)));
+  }
+
   // The public settlement log.
   app.get(
-    "/rounds/:game(hop-off|underdog|double|seven)",
+    "/rounds/:game(hop-off|underdog|double|seven|big-wheel|last-standing)",
     asyncHandler(async (req, res) => {
       const limit = Math.min(Number(req.query.limit) || 20, 100);
       res.json({ rounds: await store.listRounds(req.params.game, limit) });
@@ -141,11 +162,14 @@ function createApp({ store, hopOff, underdog, double, seven }) {
     })
   );
 
-  // Anyone can check a Hop Off round from its revealed seed.
+  // Anyone can check a Hop Off checkpoint or a Big Wheel spin from its
+  // revealed seed. Big Wheel segments are numbered from 1 here.
   app.get("/fair/verify", (req, res) => {
     const { seed, hash, roundId } = req.query;
     if (!seed || !hash || !roundId) return res.status(400).json({ message: "Send seed, hash and roundId." });
-    const check = fair.verifyStop({ seed, hash, game: "hop-off", roundId, stops: HOP_OFF.STOPS, stop: Number(req.query.stop) });
+    const game = req.query.game === "big-wheel" ? "big-wheel" : "hop-off";
+    const stops = game === "big-wheel" ? WHEEL.SEGMENTS : HOP_OFF.STOPS;
+    const check = fair.verifyStop({ seed, hash, game, roundId, stops, stop: Number(req.query.stop) });
     res.json(check);
   });
 

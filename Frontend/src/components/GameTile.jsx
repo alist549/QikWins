@@ -19,6 +19,11 @@ function GameTile({ game, live }) {
         {game.hot && (
           <span className="absolute top-2.5 right-2.5 h-6 px-2 rounded-full bg-gradient-to-r from-[#F97316] to-[#EC4899] text-white text-[11px] font-extrabold inline-flex items-center qw-pulse">🔥 HOT</span>
         )}
+        {game.max && (
+          <span className="absolute bottom-2.5 left-2.5 h-6 px-2 rounded-full bg-black/75 text-[#FACC15] text-[11px] font-extrabold inline-flex items-center backdrop-blur">
+            WIN {game.max}
+          </span>
+        )}
         {game.live && live?.pool > 0 && (
           <span className="absolute bottom-2.5 right-2.5 h-7 px-2.5 rounded-full bg-white text-black text-xs font-extrabold inline-flex items-center tabular">{money(live.pool)}</span>
         )}

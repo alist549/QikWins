@@ -8,6 +8,8 @@ import Fairness from "./screens/Fairness";
 import PlaySafe from "./screens/PlaySafe";
 import Double from "./screens/Double";
 import Seven from "./screens/Seven";
+import BigWheel from "./screens/BigWheel";
+import LastStanding from "./screens/LastStanding";
 
 function App() {
   return (
@@ -21,6 +23,8 @@ function App() {
         <Route path="/play/underdog" element={<Underdog />} />
         <Route path="/play/double" element={<Double />} />
         <Route path="/play/seven" element={<Seven />} />
+        <Route path="/play/big-wheel" element={<BigWheel />} />
+        <Route path="/play/last-standing" element={<LastStanding />} />
         <Route path="/fair" element={<Fairness />} />
         <Route path="/play-safe" element={<PlaySafe />} />
         <Route path="*" element={<Navigate to="/" replace />} />
