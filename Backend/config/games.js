@@ -3,15 +3,24 @@
 
 const num = (value, fallback) => (value === undefined || value === "" ? fallback : Number(value));
 
-// Practice players fill empty seats in the demo only. Real-money mode
-// (REAL_MONEY=on) always turns them off: the house must never play.
-const PRACTICE_PLAYERS = process.env.DEMO_OPPONENTS !== "off" && process.env.REAL_MONEY !== "on";
+// Until real money opens, balances are play credits and fill-in players take
+// empty seats. Real-money mode (REAL_MONEY=on) turns them off: the house must
+// never play against real stakes.
+const REAL_MONEY = process.env.REAL_MONEY === "on";
+const PRACTICE_PLAYERS = process.env.DEMO_OPPONENTS !== "off" && !REAL_MONEY;
 
 // Shared by every game.
 const COMMON = {
   CURRENCY: process.env.CURRENCY || "USD",
-  // Demo wallet: every new player starts with this much practice money.
-  DEMO_BALANCE: num(process.env.DEMO_BALANCE, 10000),
+  REAL_MONEY,
+  // Play credits every new player starts with (none once real money is on:
+  // players deposit through the payment provider instead).
+  START_BALANCE: REAL_MONEY ? 0 : num(process.env.START_BALANCE ?? process.env.DEMO_BALANCE, 10000),
+  // Shown in the footer once licensed, e.g. "Licence 1668/JAZ".
+  LICENCE: process.env.LICENCE_NUMBER || "",
+  // Real money also needs these providers (see README, "Going live").
+  PAYMENTS: process.env.PAYMENT_PROVIDER || "",
+  KYC: process.env.KYC_PROVIDER || "",
   MIN_STAKE: num(process.env.MIN_STAKE, 25),
   MAX_STAKE: num(process.env.MAX_STAKE, 500),
   // The quick stake chips shown in the app.

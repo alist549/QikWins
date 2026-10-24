@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import { api } from "../lib/api";
 import { SERVER_URL } from "../lib/config";
 
-// Who is playing, their demo balance, and the one live connection to the
+// Who is playing, their balance, and the one live connection to the
 // server. Signed out, the socket still connects so anyone can watch rounds.
 const SessionContext = createContext(null);
 const TOKEN_KEY = "qikwins.token";

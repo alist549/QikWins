@@ -6,13 +6,16 @@ import { useSession } from "../contexts/SessionContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { api } from "../lib/api";
 import { money } from "../lib/money";
+import { useRules } from "../lib/useRules";
 
-// Responsible play: the balance, a demo top-up, and a pause on all play.
+// Your account and responsible play: the balance (with a top-up while it's
+// play credits), your details, and a pause on all play.
 function PlaySafe() {
   const { user, token, setUser, signOut, ready } = useSession();
   const { theme, setTheme } = useTheme();
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const rules = useRules();
   if (ready && !user) return <Navigate to="/sign-in" replace />;
   if (!user) return null;
 
@@ -33,12 +36,16 @@ function PlaySafe() {
   return (
     <Page title="Your account and play safe" back="/" layout="narrow">
       <div className="rounded-3xl bg-surface p-5">
-        <div className="text-sm text-muted">Practice balance</div>
+        <div className="text-sm text-muted">{rules?.realMoney ? "Balance" : "Play credits"}</div>
         <div className="text-[34px] font-extrabold tracking-tight tabular">{money(user.balance)}</div>
         <div className="text-sm text-muted">
-          {user.name} · {user.phone}
+          {user.firstName ? `${user.firstName} ${user.surname}` : user.name} · {user.phone}
+          {user.phoneVerifiedAt && <span className="ml-1 text-[#22C55E] font-semibold">✓ verified</span>}
         </div>
-        <Button classes="mt-4" variant="secondary" title="Reset to $100" loading={busy === "reset"} fun={() => call("reset", "/me/reset-demo")} />
+        {user.email && <div className="text-sm text-muted">{user.email}</div>}
+        {!rules?.realMoney && (
+          <Button classes="mt-4" variant="secondary" title={`Top up to ${money(rules?.startBalance ?? 10000)}`} loading={busy === "reset"} fun={() => call("reset", "/me/reset-credits")} />
+        )}
       </div>
 
       <section className="mt-6">

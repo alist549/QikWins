@@ -1,4 +1,4 @@
-// Plays the demo end to end in a phone-sized Chromium and saves screenshots
+// Plays the site end to end in a phone-sized Chromium and saves screenshots
 // to docs/screenshots, plus a screen recording cut into short clips of each
 // game in motion (docs/clips, needs ffmpeg). Needs the server (Backend, e.g. STORE=memory) and the
 // website (Frontend) running:
@@ -31,7 +31,7 @@ const bots = [];
 
 async function startBots() {
   for (let i = 0; i < BOTS.length; i++) {
-    const { token } = await call("/auth/demo", { method: "POST", body: { name: BOTS[i], phone: `+2637700001${String(i).padStart(2, "0")}`, over18: true } });
+    const { token } = await call("/auth/test", { method: "POST", body: { name: BOTS[i], phone: `+2637700001${String(i).padStart(2, "0")}`, over18: true } });
     bots.push(token);
   }
   let hopRound = null;
@@ -107,17 +107,24 @@ async function waitFor(fn, timeout = 90000) {
   };
   const result = (timeout = 90000) => page.locator('[aria-live="polite"]').first().waitFor({ timeout });
 
-  // Lobby, signed out, then the demo sign-in.
+  // Lobby, signed out, then sign-up: details, then the SMS code.
   await page.goto(WEB);
   startClip();
   await page.getByText("All games").waitFor();
   await shot("lobby", { wait: 1800 });
-  await page.getByRole("link", { name: "Play free" }).click();
+  await page.getByRole("link", { name: "Join now" }).click();
   await page.getByPlaceholder("Tendai").fill("Tendai");
-  await page.getByPlaceholder("+263 77 123 4567").fill("+263 77 123 4567");
-  await page.getByRole("checkbox").check();
-  await shot("sign-in");
-  await page.getByRole("button", { name: "Start playing" }).click();
+  await page.getByPlaceholder("Moyo").fill("Moyo");
+  await page.locator('input[type="date"]').fill("1995-04-12");
+  await page.getByPlaceholder("+263 77 123 4567").fill(`+263 77 ${String(Math.floor(Math.random() * 1e7)).padStart(7, "0")}`);
+  await page.getByPlaceholder("you@example.com").fill(`tendai${Date.now()}@example.com`);
+  await shot("sign-up");
+  await page.getByRole("button", { name: "Text me a code" }).click();
+  const devCode = page.getByTestId("dev-code");
+  await devCode.waitFor();
+  await page.getByPlaceholder("••••••").fill(await devCode.innerText());
+  await shot("sign-up-code");
+  await page.getByRole("button", { name: "Verify and create account" }).click();
   await page.getByText("All games").waitFor();
   await waitFor(async () => (await call("/games/hop-off")).riders > 3);
   await page.locator("#games").scrollIntoViewIfNeeded();

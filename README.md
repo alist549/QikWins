@@ -5,7 +5,7 @@
 
 QikWins is a website of live pool games where players compete against each other, not against the operator. Everyone in a round puts into one pool, the winners share it, and QikWins takes a fixed fee that is shown before anyone plays. Every finished round is published.
 
-This first version runs in **demo mode**: every player gets $100 of practice money and no real cash moves. It's built on the same stack and design as [QikDrive](https://github.com/alist549/QikDriveZw): React, Vite and Tailwind on the web, Node, Express, MongoDB and Socket.IO on the server, Inter, black and white with QikDrive blue.
+Until real money is switched on, balances are play credits: every new account starts with $100 of credits and no cash moves (see [Going live](#going-live)). It's built on the same stack as [QikDrive](https://github.com/alist549/QikDriveZw): React, Vite and Tailwind on the web, Node, Express, MongoDB and Socket.IO on the server. The look is a night theme with a slowly drifting gradient in each game's colours, with separate phone and desktop layouts.
 
 | Lobby | Big Wheel | Last Standing | Penalties | 7x | Hop Off |
 | --- | --- | --- | --- | --- | --- |
@@ -15,7 +15,15 @@ Short clips of each game in motion are in `docs/clips`.
 
 ## The games
 
-The lobby shows every game as an animated tile with its live player count and the most it can pay. Seven are playable in the demo; the rest are shown as coming soon.
+Anyone can browse the lobby without an account; a game asks you to sign up only when you play. The lobby shows every game as an animated tile with its live player count and the most it can pay, a live big-wins ticker and the Mega Jackpot.
+
+### Mega Jackpot
+
+Last Standing (below) for 2,500 players at $1: up to 16 rounds, and the survivors share every stake less the fee, so a lone winner takes about $2,250 from a $1 play.
+
+### Races
+
+Six races on one engine: Marble Madness, Grand Prix, Rocket Race, Drone Dash, Powerboat and Hyperdrive. Back a racer while the gate is open (20 seconds); the race runs for 8 seconds and the backers of the winner share the whole pool by stake, less a 10% fee from the losing stakes. The winner is drawn from a committed seed, like Big Wheel, and every viewer sees the same race.
 
 ### Big Wheel
 
@@ -40,7 +48,7 @@ Eight players at the same stake roll three dice each, with one re-roll. The high
 
 Two players at the same stake play rock-paper-scissors, 10 seconds a throw, ties replayed. First to 2 wins takes both stakes, less a 10% fee from the loser's stake. Cancel for a full refund while waiting for an opponent.
 
-In the demo, practice players (demo accounts with ordinary names and practice money) fill empty seats so nobody waits; the sign-in screen says so. Set `DEMO_OPPONENTS=off` to turn them off. With `REAL_MONEY=on` they are always off: in real-money play the house must never take a seat.
+While balances are play credits, fill-in players (house accounts with ordinary names and their own credits) take empty seats so nobody waits; the sign-up screen says so. Set `DEMO_OPPONENTS=off` to turn them off. With `REAL_MONEY=on` they are always off: in real-money play the house must never take a seat.
 
 ### Hop Off
 
@@ -64,7 +72,29 @@ A two-sided question ("Tea or coffee?"). Players back a side for 45 seconds. Sid
 
 ## Responsible play
 
-18+ confirmation at sign-in, stakes capped per round, a one-tap pause on all play for 1, 7 or 30 days, and the fee explained on every result. Real-money play would also need SMS codes, identity checks, deposit limits and a licence in each market.
+Date of birth checked at sign-up (18+), stakes capped per round, a one-tap pause on all play for 1, 7 or 30 days, and the fee explained on every result.
+
+## Accounts
+
+Sign-up takes a first name, surname, date of birth, phone number (with country code) and email. The account is created only after the player types the 6-digit code texted to that phone. Signing in is the phone number and a new code. Codes are stored hashed, last 10 minutes, allow 5 tries, and each number can ask for one every 30 seconds (5 an hour). One account per phone number and per email. Other players see only the first name and surname initial.
+
+Texts go out through the provider in `SMS_PROVIDER` (`Backend/services/sms.js`):
+
+| Provider | Settings |
+| --- | --- |
+| `twilio` | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM` (a Twilio number or sender ID) |
+| `africastalking` | `AT_USERNAME`, `AT_API_KEY`, `AT_FROM` (optional sender ID) |
+
+With no provider set, the code is written to the server log and shown on the screen instead, so sign-up works before SMS is connected.
+
+## Going live
+
+`REAL_MONEY=on` turns off fill-in players and the play-credit top-up, starts new accounts at $0, and shows `LICENCE_NUMBER` in the top bar. Before switching it on, QikWins needs:
+
+- a gaming licence in each market, and its number in `LICENCE_NUMBER`;
+- a payments provider for deposits and withdrawals in each market (`PAYMENT_PROVIDER`), with a ledger for real balances;
+- an identity check provider (`KYC_PROVIDER`) for age and identity before the first withdrawal;
+- deposit limits, and a database (`MONGODB_URL`) rather than `STORE=memory`.
 
 ## Run it
 
@@ -84,14 +114,14 @@ Docker: `docker compose up --build`, then open http://localhost:5173.
 
 ## Put it online (Render, free)
 
-`render.yaml` is a Render Blueprint. In Render, choose **New > Blueprint**, pick this repository, and click **Apply**. One free web service builds the website, runs the game server and serves both from one address. Free instances sleep after 15 minutes without visitors and take about a minute to wake, and with `STORE=memory` a restart resets the demo. For data that lasts, add a free MongoDB Atlas cluster, set `MONGODB_URL` and remove `STORE`.
+`render.yaml` is a Render Blueprint. In Render, choose **New > Blueprint**, pick this repository, and click **Apply**. One free web service builds the website, runs the game server and serves both from one address. Free instances sleep after 15 minutes without visitors and take about a minute to wake, and with `STORE=memory` a restart or a sleep wipes every account and result. Now that players have real accounts, add a free MongoDB Atlas cluster, set `MONGODB_URL` and remove `STORE`. Add the SMS settings above under **Environment** in Render.
 
 To run it the same way locally: build the website with `VITE_SERVER_URL=/ npm run build`, then start the server with `WEB_DIR=../Frontend/dist`.
 
 ## Tests
 
 - `Backend`: `npm test` covers the pool maths (including the worked examples from the game design doc), provably fair draws, both game engines and the API. With `MONGODB_URL` set it also tests the MongoDB store.
-- `e2e`: with the server and website running, `npm install && node play.js` plays both games in a phone-sized Chromium with ten bot players and saves the screenshots in `docs/screenshots`.
+- `e2e`: with the server and website running (the server with `ENVIRONMENT=test`), `npm install && node play.js` signs up and plays every game in a phone-sized Chromium with ten bot players and saves the screenshots in `docs/screenshots`; `node desktop.js` saves desktop screenshots in `docs/screenshots/desktop`.
 
 ## Layout
 
@@ -101,11 +131,13 @@ Backend/
   services/payouts.js pool maths in whole cents (nothing created or lost)
   services/fair.js    commit-reveal seeds for Hop Off checkpoints and Big Wheel spins
   services/store.js   players and the results log (MongoDB or in memory)
-  games/              Hop Off, Underdog, x2, 7x, Big Wheel, Last Standing and Penalties engines
-  services/bots.js    practice players for empty seats (demo only)
+  games/              Hop Off, Underdog, x2, 7x, Big Wheel (and the races), Last Standing (and Mega Jackpot) and Penalties engines
+  services/bots.js    fill-in players for empty seats (play credits only)
+  services/otp.js     sign-up and sign-in codes
+  services/sms.js     sends the codes (Twilio, Africa's Talking, or the log)
   app.js, socket.js   HTTP API and live updates
 Frontend/             React website
-  src/scenes/         PixiJS scenes (Hop Off flight, Big Wheel)
+  src/scenes/         PixiJS scenes (Hop Off flight, Big Wheel, races)
   src/components/Goal.jsx  the animated goal, keeper and ball for Penalties
   src/lib/sound.js    sound effects and music (Tone.js)
 e2e/                  Playwright playthrough and screenshots

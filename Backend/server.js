@@ -10,7 +10,7 @@ const { createSevenX } = require("./games/sevenX");
 const { createBigWheel } = require("./games/bigWheel");
 const { createLastStanding } = require("./games/lastStanding");
 const { createPenalties } = require("./games/penalties");
-const { MEGA, RACES } = require("./config/games");
+const { COMMON, MEGA, RACES } = require("./config/games");
 const { memoryStore, mongoStore } = require("./services/store");
 
 const PORT = process.env.PORT || 3000;
@@ -41,7 +41,7 @@ async function main() {
 
   server.on("request", createApp({ store, hopOff: games["hop-off"], underdog: games.underdog, double, seven, wheel: games["big-wheel"], races, standing, mega, penalties, webDir: process.env.WEB_DIR && path.resolve(__dirname, process.env.WEB_DIR) }));
   [...Object.values(games), double, seven, standing, mega, penalties].forEach((g) => g.start());
-  server.listen(PORT, () => console.log(`QikWins server on port ${PORT} (${store.kind} store, demo mode)`));
+  server.listen(PORT, () => console.log(`QikWins server on port ${PORT} (${store.kind} store, ${COMMON.REAL_MONEY ? "real money" : "play credits"})`));
 }
 
 main().catch((e) => {

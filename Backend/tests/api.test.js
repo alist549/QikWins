@@ -2,6 +2,7 @@ process.env.ENVIRONMENT = "test";
 const request = require("supertest");
 const { createApp } = require("../app");
 const { memoryStore } = require("../services/store");
+const { createOtp } = require("../services/otp");
 const { createHopOff } = require("../games/hopOff");
 const { createUnderdog } = require("../games/underdog");
 const { createDoubleOrNothing } = require("../games/doubleOrNothing");
@@ -19,22 +20,69 @@ function setup() {
 }
 
 async function signIn(app, phone = "+263 77 123 4567") {
-  const res = await request(app).post("/auth/demo").send({ name: "Tendai", phone, over18: true });
+  const res = await request(app).post("/auth/test").send({ name: "Tendai", phone, over18: true });
   return res.body;
 }
 
-test("demo sign-in needs a name, an international number and 18+", async () => {
-  const { app } = setup();
-  expect((await request(app).post("/auth/demo").send({ name: "Tendai", phone: "+263771234567", over18: false })).status).toBe(400);
-  expect((await request(app).post("/auth/demo").send({ name: "Tendai", phone: "12", over18: true })).status).toBe(400);
-  const first = await signIn(app);
-  expect(first.user.phone).toBe("+263771234567");
-  expect(first.user.balance).toBe(10000);
+const person = { firstName: "Tendai", surname: "Moyo", dob: "1995-04-12", phone: "+263 77 123 4567", email: "tendai@example.com" };
+
+test("sign-up checks the details, then needs the SMS code before the account exists", async () => {
+  const { app, store } = setup();
+  const start = (fields) => request(app).post("/auth/signup/start").send({ ...person, ...fields });
+  expect((await start({ phone: "12" })).status).toBe(400);
+  expect((await start({ email: "nope" })).status).toBe(400);
+  expect((await start({ firstName: "" })).status).toBe(400);
+  const young = new Date(Date.now() - 17 * 365.25 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+  expect((await start({ dob: young })).body.message).toMatch(/18 or older/);
+
+  const ok = await start({});
+  expect(ok.status).toBe(200);
+  expect(ok.body.phone).toBe("+263771234567");
+  expect(ok.body.devCode).toMatch(/^\d{6}$/);
+  // No account until the code is entered.
+  expect(await store.findUserByPhone("+263771234567")).toBeFalsy();
+  // Asking again straight away is refused.
+  expect((await start({})).status).toBe(429);
+
+  const wrong = ok.body.devCode === "000000" ? "111111" : "000000";
+  const bad = await request(app).post("/auth/verify").send({ requestId: ok.body.requestId, code: wrong });
+  expect(bad.status).toBe(400);
+  expect(bad.body.message).toMatch(/4 tries left/);
+  const done = await request(app).post("/auth/verify").send({ requestId: ok.body.requestId, code: ok.body.devCode });
+  expect(done.status).toBe(200);
+  expect(done.body.token).toBeTruthy();
+  expect(done.body.user).toMatchObject({ name: "Tendai M.", firstName: "Tendai", surname: "Moyo", dob: "1995-04-12", email: "tendai@example.com", balance: 10000 });
+  expect(done.body.user.phoneVerifiedAt).toBeTruthy();
+  // A used code can't be used twice.
+  expect((await request(app).post("/auth/verify").send({ requestId: ok.body.requestId, code: ok.body.devCode })).status).toBe(400);
+});
+
+test("one account per phone and email; signing in is the phone and a code", async () => {
+  let t = Date.now();
+  const app = createApp({ store: memoryStore(), otp: createOtp({ now: () => t }) });
+  const s = await request(app).post("/auth/signup/start").send(person);
+  const first = await request(app).post("/auth/verify").send({ requestId: s.body.requestId, code: s.body.devCode });
+  expect((await request(app).post("/auth/signup/start").send(person)).status).toBe(409);
+  expect((await request(app).post("/auth/signup/start").send({ ...person, phone: "+254 712 345678" })).body.message).toMatch(/email/);
+  expect((await request(app).post("/auth/login/start").send({ phone: "+254 712 345678" })).status).toBe(404);
+  t += 31 * 1000;
   // Local Zimbabwean format finds the same player.
-  const again = await signIn(app, "0771234567");
-  expect(again.user.id).toBe(first.user.id);
-  const kenya = await signIn(app, "+254 712 345678");
-  expect(kenya.user.id).not.toBe(first.user.id);
+  const login = await request(app).post("/auth/login/start").send({ phone: "0771234567" });
+  expect(login.status).toBe(200);
+  const again = await request(app).post("/auth/verify").send({ requestId: login.body.requestId, code: login.body.devCode });
+  expect(again.body.user.id).toBe(first.body.user.id);
+});
+
+test("codes are sent by SMS and never returned once a provider is set", async () => {
+  const sent = [];
+  const store = memoryStore();
+  const app = createApp({ store, sms: { live: true, send: async (to, text) => sent.push({ to, text }) } });
+  const s = await request(app).post("/auth/signup/start").send(person);
+  expect(s.status).toBe(200);
+  expect(s.body.devCode).toBeUndefined();
+  expect(sent[0].to).toBe("+263771234567");
+  const code = sent[0].text.match(/\d{6}/)[0];
+  expect((await request(app).post("/auth/verify").send({ requestId: s.body.requestId, code })).status).toBe(200);
 });
 
 test("a full Hop Off round through the API", async () => {
@@ -61,12 +109,12 @@ test("a full Hop Off round through the API", async () => {
   expect((await request(app).get(`/rounds/id/${r.id}`)).body.round.id).toBe(r.id);
 });
 
-test("Underdog staking, pausing and demo reset", async () => {
+test("Underdog staking, pausing and topping up play credits", async () => {
   const { app } = setup();
   const { token } = await signIn(app);
   const bet = await request(app).post("/games/underdog/stake").set("token", token).send({ side: "a", stake: 200 });
   expect(bet.body.you).toEqual({ side: "a", stake: 200, payout: null });
-  const reset = await request(app).post("/me/reset-demo").set("token", token);
+  const reset = await request(app).post("/me/reset-credits").set("token", token);
   expect(reset.body.user.balance).toBe(10000);
   expect((await request(app).post("/me/pause").set("token", token).send({ days: 3 })).status).toBe(400);
   const pause = await request(app).post("/me/pause").set("token", token).send({ days: 1 });

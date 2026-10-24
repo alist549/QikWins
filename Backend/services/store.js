@@ -2,14 +2,19 @@ const crypto = require("crypto");
 
 // Where players and finished rounds are kept. MongoDB in normal use, like
 // QikDrive; STORE=memory keeps everything in this process (tests, or a quick
-// demo without a database). Both expose the same functions, and every
+// trial without a database). Both expose the same functions, and every
 // balance change is a single atomic step so a stake can never overdraw.
 
 const toUser = (doc) =>
   doc && {
     id: String(doc._id ?? doc.id),
     name: doc.name,
+    firstName: doc.firstName || null,
+    surname: doc.surname || null,
+    dob: doc.dob || null,
+    email: doc.email || null,
     phone: doc.phone,
+    phoneVerifiedAt: doc.phoneVerifiedAt || null,
     balance: doc.balance,
     excludedUntil: doc.excludedUntil || null,
   };
@@ -23,13 +28,16 @@ function memoryStore() {
 
   return {
     kind: "memory",
-    async createUser({ name, phone, balance }) {
-      const user = { id: crypto.randomBytes(12).toString("hex"), name, phone, balance, excludedUntil: null };
+    async createUser(fields) {
+      const user = { id: crypto.randomBytes(12).toString("hex"), ...fields, excludedUntil: null };
       users.set(user.id, user);
       return copy(user);
     },
     async findUserByPhone(phone) {
       return copy([...users.values()].find((u) => u.phone === phone));
+    },
+    async findUserByEmail(email) {
+      return copy([...users.values()].find((u) => u.email === email));
     },
     async getUser(id) {
       return copy(users.get(String(id)));
@@ -72,11 +80,14 @@ function mongoStore() {
 
   return {
     kind: "mongo",
-    async createUser({ name, phone, balance }) {
-      return toUser(await userModel.create({ name, phone, balance }));
+    async createUser(fields) {
+      return toUser(await userModel.create(fields));
     },
     async findUserByPhone(phone) {
       return toUser(await userModel.findOne({ phone }).lean());
+    },
+    async findUserByEmail(email) {
+      return toUser(await userModel.findOne({ email }).lean());
     },
     async getUser(id) {
       if (!/^[a-f0-9]{24}$/.test(String(id))) return null;

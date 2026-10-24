@@ -8,6 +8,7 @@ import BigWinsFeed from "./BigWinsFeed";
 import JackpotCard from "./JackpotCard";
 import { useSession } from "../contexts/SessionContext";
 import Counter from "./Counter";
+import { useRules } from "../lib/useRules";
 import { setSoundEnabled, useSoundEnabled, useTrack } from "../lib/sound";
 
 const DESKTOP_LINKS = [
@@ -18,7 +19,7 @@ const DESKTOP_LINKS = [
   ["/play-safe", "Account"],
 ];
 
-// Every screen: the demo notice, a header with the back arrow (inner screens)
+// Every screen: the 18+ notice (and the licence once real money is on), a header with the back arrow (inner screens)
 // or the logo, the balance, and the tab bar. On a phone it's one column. On a
 // desktop the header carries the links, and `layout` picks the body:
 //   "wide": the full width (the lobby lays itself out),
@@ -33,6 +34,7 @@ function Page({ title, back, children, nav = true, track = "lobby", layout = "ga
   const navigate = useNavigate();
   const { user } = useSession();
   const sound = useSoundEnabled();
+  const rules = useRules();
   useTrack(track);
   const [glowA, glowB] = glow;
   useEffect(() => {
@@ -41,7 +43,9 @@ function Page({ title, back, children, nav = true, track = "lobby", layout = "ga
   }, [glowA, glowB]);
   return (
     <div className="min-h-[100dvh] flex flex-col">
-      <div className="bg-gradient-to-r from-[#7C3AED] via-[#EC4899] to-[#F97316] text-white text-center text-[11px] font-bold tracking-wide py-1 px-4">DEMO · PRACTICE MONEY · 18+</div>
+      <div className="bg-gradient-to-r from-[#7C3AED] via-[#EC4899] to-[#F97316] text-white text-center text-[11px] font-bold tracking-wide py-1 px-4">
+        {rules?.realMoney ? `18+ · PLAY RESPONSIBLY${rules.licence ? ` · LICENCE ${rules.licence}` : ""}` : "18+ · PLAY RESPONSIBLY · PLAY CREDITS, NOT CASH"}
+      </div>
       <div className="w-full max-w-md lg:max-w-[1440px] mx-auto px-4 lg:px-8 flex-1 flex flex-col">
         <header className="h-14 lg:h-20 flex items-center justify-between gap-3">
           {back ? (
@@ -97,7 +101,7 @@ function Page({ title, back, children, nav = true, track = "lobby", layout = "ga
             </Link>
           ) : (
             <Link to="/sign-in" className="relative overflow-hidden qw-shine h-9 px-4 rounded-full bg-gradient-to-r from-[#22C55E] to-[#0EA5E9] text-white inline-flex items-center text-sm font-extrabold shadow-float">
-              Play free
+              Join now
             </Link>
           )}
           </div>

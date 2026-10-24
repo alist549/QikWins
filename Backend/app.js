@@ -9,12 +9,14 @@ const { normalizePhone } = require("./utils/phone");
 const { signToken, requireUser, optionalUser } = require("./middlewares/auth");
 const { GameError } = require("./games/hopOff");
 const fair = require("./services/fair");
+const { createSms } = require("./services/sms");
+const { createOtp } = require("./services/otp");
 
 // The HTTP API. Players act through these routes; live round updates go
 // out over Socket.IO (socket.js).
 // With `webDir` (the built website), the same server also serves the site,
 // so one free web service runs everything (see render.yaml).
-function createApp({ store, hopOff, underdog, double, seven, wheel, races = [], standing, mega, penalties, webDir }) {
+function createApp({ store, sms = createSms(), otp = createOtp(), hopOff, underdog, double, seven, wheel, races = [], standing, mega, penalties, webDir }) {
   const app = express();
   if (process.env.ENVIRONMENT !== "test") app.use(morgan("dev"));
   app.use(cors());
@@ -39,7 +41,7 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, races = [], 
       }
     });
 
-  const status = (req, res) => res.json({ name: "QikWins", demo: true, store: store.kind });
+  const status = (req, res) => res.json({ name: "QikWins", realMoney: COMMON.REAL_MONEY, store: store.kind });
   app.get("/health", status);
   if (webDir) app.use(express.static(webDir, { index: false, maxAge: "1h" }));
   else app.get("/", status);
@@ -51,7 +53,9 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, races = [], 
       minStake: COMMON.MIN_STAKE,
       maxStake: COMMON.MAX_STAKE,
       stakeChips: COMMON.STAKE_CHIPS,
-      demoBalance: COMMON.DEMO_BALANCE,
+      startBalance: COMMON.START_BALANCE,
+      realMoney: COMMON.REAL_MONEY,
+      licence: COMMON.LICENCE,
       hopOff: { stops: HOP_OFF.STOPS, feeRate: HOP_OFF.FEE_RATE, boardingMs: HOP_OFF.BOARDING_MS, stopMs: HOP_OFF.STOP_MS },
       underdog: { feeRate: UNDERDOG.FEE_RATE, openMs: UNDERDOG.OPEN_MS },
       double: { feeRate: DOUBLE.FEE_RATE, winsNeeded: DOUBLE.WINS_NEEDED, moveMs: DOUBLE.MOVE_MS },
@@ -64,29 +68,101 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, races = [], 
     })
   );
 
-  // Demo sign-in: a name, a phone number and a confirmed age. Real-money
-  // play would add an SMS code and identity checks here.
+  // Accounts. Signing up takes a first name, surname, date of birth (18+),
+  // phone number and email, and only creates the account once the phone has
+  // proved itself with a 6-digit SMS code. Signing in is the phone and a code.
+  // With no SMS provider set yet, the code comes back in the reply (`devCode`)
+  // and the site shows it, so sign-up keeps working until SMS is connected.
+  const reply = async (res, phone, issued, purpose) => {
+    if (issued.wait) return res.status(429).json({ message: `Wait ${issued.wait} seconds before asking for another code.` });
+    try {
+      await sms.send(phone, `${issued.code} is your QikWins ${purpose} code. It expires in 10 minutes. Never share it.`);
+    } catch (e) {
+      console.error("SMS:", e.message);
+      return res.status(502).json({ message: "We couldn't send the text. Check the number and try again." });
+    }
+    res.json({ requestId: issued.id, phone, ...(sms.live ? {} : { devCode: issued.code }) });
+  };
+  const ageOn = (dob, today = new Date()) => {
+    let age = today.getUTCFullYear() - dob.getUTCFullYear();
+    const m = today.getUTCMonth() - dob.getUTCMonth();
+    if (m < 0 || (m === 0 && today.getUTCDate() < dob.getUTCDate())) age -= 1;
+    return age;
+  };
+  const nameRule = (field, label) =>
+    body(field).isString().trim().matches(/^[\p{L}][\p{L}' .-]{0,39}$/u).withMessage(`Enter your ${label}.`);
+
   app.post(
-    "/auth/demo",
-    body("name").isString().trim().isLength({ min: 2, max: 40 }).withMessage("Enter your name (2 to 40 letters)."),
-    body("over18").equals("true").withMessage("You must be 18 or older to play."),
+    "/auth/signup/start",
+    nameRule("firstName", "first name"),
+    nameRule("surname", "surname"),
+    body("email").isEmail().withMessage("Enter a valid email address.").normalizeEmail({ gmail_remove_dots: false }),
+    body("dob").isISO8601({ strict: true }).withMessage("Enter your date of birth."),
     asyncHandler(async (req, res) => {
       if (!valid(req, res)) return;
       const phone = normalizePhone(req.body.phone);
       if (!phone) return res.status(400).json({ message: "Enter your phone number with its country code, like +263 77 123 4567." });
-      const user =
-        (await store.findUserByPhone(phone)) ||
-        (await store.createUser({ name: req.body.name.trim(), phone, balance: COMMON.DEMO_BALANCE }));
+      const dob = new Date(`${req.body.dob.slice(0, 10)}T00:00:00Z`);
+      const age = ageOn(dob);
+      if (Number.isNaN(age) || age > 120) return res.status(400).json({ message: "Enter your date of birth." });
+      if (age < 18) return res.status(400).json({ message: "You must be 18 or older to play." });
+      if (await store.findUserByPhone(phone)) return res.status(409).json({ message: "That number already has an account. Sign in instead." });
+      if (await store.findUserByEmail(req.body.email)) return res.status(409).json({ message: "That email already has an account. Sign in instead." });
+      const profile = { firstName: req.body.firstName.trim(), surname: req.body.surname.trim(), dob: dob.toISOString().slice(0, 10), email: req.body.email };
+      await reply(res, phone, otp.issue(phone, { signup: profile }), "sign-up");
+    })
+  );
+
+  app.post(
+    "/auth/login/start",
+    asyncHandler(async (req, res) => {
+      const phone = normalizePhone(req.body.phone);
+      if (!phone) return res.status(400).json({ message: "Enter your phone number with its country code, like +263 77 123 4567." });
+      if (!(await store.findUserByPhone(phone))) return res.status(404).json({ message: "No account uses that number yet. Create one first." });
+      await reply(res, phone, otp.issue(phone, {}), "sign-in");
+    })
+  );
+
+  app.post(
+    "/auth/verify",
+    body("requestId").isString().withMessage("Ask for a code first."),
+    body("code").isString().trim().matches(/^\d{6}$/).withMessage("Enter the 6-digit code."),
+    asyncHandler(async (req, res) => {
+      if (!valid(req, res)) return;
+      const checked = otp.check(req.body.requestId, req.body.code);
+      if (!checked.ok) return res.status(400).json({ message: checked.message });
+      const { phone, data } = checked;
+      let user = await store.findUserByPhone(phone);
+      if (data.signup) {
+        if (user) return res.status(409).json({ message: "That number already has an account. Sign in instead." });
+        const p = data.signup;
+        user = await store.createUser({ ...p, name: `${p.firstName} ${p.surname[0].toUpperCase()}.`, phone, phoneVerifiedAt: new Date(), balance: COMMON.START_BALANCE });
+      }
+      if (!user) return res.status(404).json({ message: "No account uses that number yet. Create one first." });
       res.json({ token: signToken(user.id), user });
     })
   );
 
+  // Tests and the screenshot script sign players in directly.
+  if (process.env.ENVIRONMENT === "test") {
+    app.post("/auth/test", asyncHandler(async (req, res) => {
+      const phone = normalizePhone(req.body.phone);
+      if (!phone || !req.body.name) return res.status(400).json({ message: "Name and phone needed." });
+      const user = (await store.findUserByPhone(phone)) || (await store.createUser({ name: String(req.body.name).slice(0, 40), phone, balance: COMMON.START_BALANCE }));
+      res.json({ token: signToken(user.id), user });
+    }));
+  }
+
   app.get("/me", auth, (req, res) => res.json({ user: req.user }));
 
+  // Play credits only: top the balance back up to the starting amount.
   app.post(
-    "/me/reset-demo",
+    "/me/reset-credits",
     auth,
-    asyncHandler(async (req, res) => res.json({ user: await store.update(req.user.id, { balance: COMMON.DEMO_BALANCE }) }))
+    asyncHandler(async (req, res) => {
+      if (COMMON.REAL_MONEY) return res.status(403).json({ message: "Deposits go through the cashier." });
+      res.json({ user: await store.update(req.user.id, { balance: COMMON.START_BALANCE }) });
+    })
   );
 
   // Self-exclusion: no stakes accepted for 1, 7 or 30 days.

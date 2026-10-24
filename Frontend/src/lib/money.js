@@ -1,4 +1,4 @@
-// All amounts arrive in cents. Demo mode plays in US dollars.
+// All amounts arrive in cents. Play is in US dollars.
 export const money = (cents, { sign = false } = {}) => {
   if (cents == null) return "";
   const value = `$${(Math.abs(cents) / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

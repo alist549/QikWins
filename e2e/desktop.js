@@ -12,7 +12,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
-  const res = await fetch(`${API}/auth/demo`, {
+  const res = await fetch(`${API}/auth/test`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: "Tendai", phone: `+1555${Math.floor(Math.random() * 1e7)}`, over18: true }),
@@ -28,6 +28,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await page.screenshot({ path: path.join(OUT, file) });
     console.log("saved", file);
   };
+
+  await page.goto(`${WEB}/sign-in`);
+  await page.getByPlaceholder("Tendai").fill("Tendai");
+  await page.getByPlaceholder("Moyo").fill("Moyo");
+  await page.locator('input[type="date"]').fill("1995-04-12");
+  await page.getByPlaceholder("+263 77 123 4567").fill("+263 77 123 4567");
+  await page.getByPlaceholder("you@example.com").fill("tendai@example.com");
+  await shot("sign-up", 800);
 
   await page.goto(WEB);
   await page.evaluate((t) => localStorage.setItem("qikwins.token", t), token);
@@ -50,6 +58,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await page.goto(`${WEB}/play/big-wheel`);
   await page.getByRole("button", { name: /Take all/ }).first().click().catch(() => {});
   await shot("big-wheel");
+
+  for (const race of ["marble-madness", "grand-prix", "hyperdrive"]) {
+    await page.goto(`${WEB}/play/${race}`);
+    await shot(race, 2500);
+  }
 
   await page.goto(`${WEB}/play/penalties`);
   await page.getByRole("radio", { name: "$1.00" }).click();

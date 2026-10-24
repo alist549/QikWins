@@ -32,7 +32,7 @@ function Why() {
         ))}
       </div>
       <p className="mt-4 text-xs text-muted">The fee comes out of every pool, so players as a group get back slightly less than they put in. The cost is fixed and visible, not hidden in odds.</p>
-      <Button classes="mt-6" type="link" path={user ? "/" : "/sign-in"} variant="brand" title={user ? "Back to the games" : "Play the free demo"} />
+      <Button classes="mt-6" type="link" path={user ? "/" : "/sign-in"} variant="brand" title={user ? "Back to the games" : "Create your account"} />
     </Page>
   );
 }

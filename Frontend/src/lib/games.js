@@ -1,6 +1,6 @@
 import { RACES } from "./races";
 
-// Every game in the lobby. Eight are live in the demo; the rest are shown as
+// Every game in the lobby. Eight are live; the rest are shown as
 // coming soon so players can see where QikWins is going.
 // `max` is the most a player can win back, as a multiple of their stake.
 export const GAMES = [

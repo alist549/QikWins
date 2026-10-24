@@ -111,7 +111,7 @@ describe("Last Standing", () => {
     expect((await store.listRounds("last-standing", 1))[0].history).toHaveLength(3);
   });
 
-  test("demo bots fill the knockout and pick for themselves", async () => {
+  test("fill-in players fill the knockout and pick for themselves", async () => {
     const store = memoryStore();
     const game = createLastStanding({ store, autoRun: false, config: { ...STANDING, SEATS: 8 } });
     const [a] = await players(store, 1);

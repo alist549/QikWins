@@ -3,8 +3,9 @@
 #
 # Free instances sleep after 15 minutes without visitors and take about a
 # minute to wake. STORE=memory keeps players and results in memory, so a
-# restart or a sleep resets the demo. For data that lasts, create a free
-# MongoDB Atlas cluster, set MONGODB_URL in Render and remove STORE.
+# restart or a sleep wipes every account. For accounts that last, create a
+# free MongoDB Atlas cluster, set MONGODB_URL in Render and remove STORE.
+# SMS codes: set SMS_PROVIDER and its keys (see README, "Accounts").
 services:
   - type: web
     name: qikwins
@@ -23,3 +24,11 @@ services:
         value: ../Frontend/dist
       - key: JWT_SECRET
         generateValue: true
+      - key: SMS_PROVIDER
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_FROM
+        sync: false

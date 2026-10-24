@@ -107,7 +107,7 @@ function createBigWheel({ store, publish = () => {}, notify = () => {}, config =
     return snapshot();
   }
 
-  // Demo only: a few labelled demo players drift in with small stakes.
+  // Play credits only: a few fill-in players drift in with small stakes.
   function seedBots(id) {
     const n = config.BOT_PLAYERS;
     for (let i = 0; i < n; i++) {
