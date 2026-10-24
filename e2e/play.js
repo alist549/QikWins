@@ -175,6 +175,56 @@ async function waitFor(fn, timeout = 90000) {
   await shot("last-standing-result", { wait: 2500 });
   endClip("last-standing");
 
+  // Penalties: enter the World Cup, shoot and keep, then play on or cash out.
+  // A loss before the first cash-out choice re-enters, so the run shows it.
+  const SPOTS = ["Top left", "Top middle", "Top right", "Bottom left", "Bottom middle", "Bottom right"];
+  await page.goto(`${WEB}/play/penalties`);
+  await page.getByRole("radio", { name: "$1.00" }).click();
+  await shot("penalties-pick-mode");
+  startClip();
+  let choices = 0;
+  let shotKick = false;
+  for (let attempt = 0; attempt < 4 && choices === 0; attempt += 1) {
+    await page.getByRole("button", { name: /Enter the cup/ }).click();
+    await page.getByText(/kick-off when full/).waitFor();
+    if (attempt === 0) await shot("penalties-filling-cup", { wait: 1200 });
+    await page.getByText(/You shoot|You keep/).first().waitFor({ timeout: 30000 });
+    if (attempt === 0) await shot("penalties-your-kick", { wait: 400 });
+    const stop = Date.now() + 240000;
+    while (Date.now() < stop) {
+      const body = await page.textContent("body");
+      if (/decide in/.test(body)) {
+        choices += 1;
+        await shot(`penalties-cash-out-or-play-on`, { wait: 600 });
+        const cash = choices >= 2;
+        await page.getByRole("button", { name: cash ? /Cash out/ : /Play on/ }).click({ force: true }).catch(() => {});
+        if (cash) break;
+        await page.getByText(/decide in/).waitFor({ state: "detached", timeout: 20000 }).catch(() => {});
+        continue;
+      }
+      if (/Leave the cup|Play again/.test(body) && !/You shoot|You keep/.test(body)) break;
+      const spot = page.getByRole("button", { name: pick(SPOTS), exact: true });
+      if ((await spot.count()) && (await spot.isEnabled().catch(() => false))) {
+        await spot.click({ force: true }).catch(() => {});
+        if (!shotKick) {
+          await page.getByText(/GOAL!|SAVED!/).waitFor({ timeout: 15000 }).catch(() => {});
+          shotKick = true;
+          await shot("penalties-goal-or-save", { wait: 900 });
+        }
+      }
+      await sleep(400);
+    }
+    if (choices === 0) {
+      await call("/games/penalties/dismiss", { method: "POST", token: await page.evaluate(() => localStorage.getItem("qikwins.token")) });
+      await page.goto(`${WEB}/play/penalties`);
+      await page.getByRole("radio", { name: "$1.00" }).click();
+    }
+  }
+  await page.getByText(/Cashed out|Knocked out|Play again/).first().waitFor({ timeout: 30000 });
+  await shot("penalties-result", { wait: 1500 });
+  endClip("penalties");
+  await page.getByRole("button", { name: /Leave the cup/ }).click().catch(() => {});
+
   // 7x: take a seat, players join, practice players fill the rest, roll.
   await page.goto(`${WEB}/play/seven`);
   await page.getByRole("radio", { name: "$2.00" }).click();

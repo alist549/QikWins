@@ -6,6 +6,7 @@ import GameArt from "./GameArt";
 const SLIDES = [
   { art: "big-wheel", kicker: "Jackpot rolls over", title: "Spin for 50x and more.", cta: "Play Big Wheel", to: "/play/big-wheel", bg: "from-[#4C1D95] via-[#DB2777] to-[#F97316]" },
   { art: "last-standing", kicker: "32 players · 1 winner", title: "Be the last one standing.", cta: "Play Last Standing", to: "/play/last-standing", bg: "from-[#7F1D1D] to-[#F97316]" },
+  { art: "spot-kick", kicker: "1 v 1 or a 16-player cup", title: "Win the World Cup of penalties.", cta: "Play Penalties", to: "/play/penalties", bg: "from-[#065F46] via-[#16A34A] to-[#FACC15]" },
   { art: "seven", kicker: "8 players · 1 table", title: "Out-roll 7 players. Win 7x.", cta: "Play 7x", to: "/play/seven", bg: "from-[#F97316] via-[#EC4899] to-[#7C3AED]" },
   { art: "double", kicker: "Head to head", title: "Rock, paper, x2!", cta: "Play x2", to: "/play/double", bg: "from-[#00C2FF] to-[#7C3AED]" },
   { art: "hop-off", kicker: "Fly the world", title: "London to Tokyo. Hop off in time!", cta: "Play Hop Off", to: "/play/hop-off", bg: "from-[#0040A0] to-[#007DFE]" },

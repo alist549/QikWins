@@ -9,6 +9,7 @@ const { createDoubleOrNothing } = require("./games/doubleOrNothing");
 const { createSevenX } = require("./games/sevenX");
 const { createBigWheel } = require("./games/bigWheel");
 const { createLastStanding } = require("./games/lastStanding");
+const { createPenalties } = require("./games/penalties");
 const { memoryStore, mongoStore } = require("./services/store");
 
 const PORT = process.env.PORT || 3000;
@@ -33,9 +34,10 @@ async function main() {
   const double = createDoubleOrNothing({ store, publish: live.broadcast, notify: live.notify });
   const seven = createSevenX({ store, publish: live.broadcast, notify: live.notify });
   const standing = createLastStanding({ store, publish: live.broadcast, notify: live.notify });
+  const penalties = createPenalties({ store, publish: live.broadcast, notify: live.notify });
 
-  server.on("request", createApp({ store, hopOff: games["hop-off"], underdog: games.underdog, double, seven, wheel: games["big-wheel"], standing, webDir: process.env.WEB_DIR && path.resolve(__dirname, process.env.WEB_DIR) }));
-  [...Object.values(games), double, seven, standing].forEach((g) => g.start());
+  server.on("request", createApp({ store, hopOff: games["hop-off"], underdog: games.underdog, double, seven, wheel: games["big-wheel"], standing, penalties, webDir: process.env.WEB_DIR && path.resolve(__dirname, process.env.WEB_DIR) }));
+  [...Object.values(games), double, seven, standing, penalties].forEach((g) => g.start());
   server.listen(PORT, () => console.log(`QikWins server on port ${PORT} (${store.kind} store, demo mode)`));
 }
 

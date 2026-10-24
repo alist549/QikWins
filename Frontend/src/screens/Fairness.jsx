@@ -8,6 +8,7 @@ import { SEGMENTS } from "../scenes/wheel";
 const TABS = [
   ["big-wheel", "Big Wheel"],
   ["last-standing", "Last Standing"],
+  ["penalties", "Penalties"],
   ["seven", "7x"],
   ["double", "x2"],
   ["hop-off", "Hop Off"],
@@ -133,8 +134,36 @@ function StandingRound({ r }) {
   );
 }
 
+function PenaltyRound({ r }) {
+  return (
+    <li className="rounded-3xl border border-line p-4">
+      <div className="flex items-center justify-between">
+        <span className="font-semibold">
+          {r.mode === "cup" ? `World Cup · ${r.players.length} players` : "1 v 1"} · {r.champion ? `${r.champion} won` : "everyone cashed out"}
+        </span>
+        <span className="text-xs text-muted">{new Date(r.settledAt).toLocaleTimeString()}</span>
+      </div>
+      <div className="mt-1 text-sm text-muted tabular">
+        {money(r.stake)} each · pot {money(r.pool)} · fee {money(r.fee)} · paid {money(r.paidOut)}
+      </div>
+      <ol className="mt-2 text-sm flex flex-col gap-1">
+        {r.history.map((h) => (
+          <li key={h.round} className="tabular">
+            <span className="font-semibold">{h.name}:</span>{" "}
+            {h.matches.map((m) => `${m.a} ${m.score[0]}-${m.score[1]} ${m.b}`).join(" · ")}
+          </li>
+        ))}
+      </ol>
+      <div className="mt-2 text-sm">
+        Paid: {r.players.filter((p) => p.payout > 0).map((p) => `${p.name} ${money(p.payout)}`).join(", ")}
+      </div>
+    </li>
+  );
+}
+
 const ROUND = {
   "big-wheel": WheelRound,
+  penalties: PenaltyRound,
   "last-standing": StandingRound, "hop-off": HopOffRound, underdog: UnderdogRound, double: DoubleRound, seven: SevenRound };
 
 function HopOffRound({ r }) {

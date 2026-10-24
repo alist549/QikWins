@@ -7,15 +7,15 @@ QikWins is a website of live pool games where players compete against each other
 
 This first version runs in **demo mode**: every player gets $100 of practice money and no real cash moves. It's built on the same stack and design as [QikDrive](https://github.com/alist549/QikDriveZw): React, Vite and Tailwind on the web, Node, Express, MongoDB and Socket.IO on the server, Inter, black and white with QikDrive blue.
 
-| Lobby | Big Wheel | Last Standing | 7x | Hop Off |
-| --- | --- | --- | --- | --- |
-| ![](docs/screenshots/01-lobby.png) | ![](docs/screenshots/05-big-wheel-spinning.png) | ![](docs/screenshots/10-last-standing-reveal.png) | ![](docs/screenshots/14-7x-rolling.png) | ![](docs/screenshots/23-hop-off-flying.png) |
+| Lobby | Big Wheel | Last Standing | Penalties | 7x | Hop Off |
+| --- | --- | --- | --- | --- | --- |
+| ![](docs/screenshots/01-lobby.png) | ![](docs/screenshots/05-big-wheel-spinning.png) | ![](docs/screenshots/10-last-standing-reveal.png) | ![](docs/screenshots/15-penalties-goal-or-save.png) | ![](docs/screenshots/20-7x-rolling.png) | ![](docs/screenshots/29-hop-off-flying.png) |
 
 Short clips of each game in motion are in `docs/clips`.
 
 ## The games
 
-The lobby shows every game as an animated tile with its live player count and the most it can pay. Six are playable in the demo; the rest are shown as coming soon.
+The lobby shows every game as an animated tile with its live player count and the most it can pay. Seven are playable in the demo; the rest are shown as coming soon.
 
 ### Big Wheel
 
@@ -24,6 +24,13 @@ A prize wheel with 12 segments. While it's open (20 seconds), players stake on a
 ### Last Standing
 
 A knockout for 32 players at one stake. Each round asks a two-way question with 8 seconds to answer, and only the side fewer players picked survives (a tie keeps both; not answering knocks you out). After one player is left, or 8 rounds, the survivors share every stake, less a 10% fee from the knocked-out players' stakes: about 29x for a lone winner.
+
+### Penalties
+
+Shootouts against real people, picking from 6 spots in the goal (top or bottom, left, middle or right). Players take turns to shoot and keep: the shooter picks a spot, the keeper picks where to dive, and it's saved only if they match. 3 kicks each, then sudden death. Choose how to play:
+
+- **1 v 1**: one shootout, winner takes both stakes less a 10% fee from the loser's stake (about 1.9x).
+- **World Cup**: a 16-player knockout of shootouts. Winning a match adds your opponent's bank (less the fee) to yours. After each round the players still in choose to cash out their bank or play on for double; no answer means cash out. The champion of a full cup gets back about 13x.
 
 ### 7x
 
@@ -94,11 +101,12 @@ Backend/
   services/payouts.js pool maths in whole cents (nothing created or lost)
   services/fair.js    commit-reveal seeds for Hop Off checkpoints and Big Wheel spins
   services/store.js   players and the results log (MongoDB or in memory)
-  games/              Hop Off, Underdog, x2, 7x, Big Wheel and Last Standing engines
+  games/              Hop Off, Underdog, x2, 7x, Big Wheel, Last Standing and Penalties engines
   services/bots.js    practice players for empty seats (demo only)
   app.js, socket.js   HTTP API and live updates
 Frontend/             React website
   src/scenes/         PixiJS scenes (Hop Off flight, Big Wheel)
+  src/components/Goal.jsx  the animated goal, keeper and ball for Penalties
   src/lib/sound.js    sound effects and music (Tone.js)
 e2e/                  Playwright playthrough and screenshots
 ```

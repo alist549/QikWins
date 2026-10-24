@@ -4,7 +4,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, STANDING } = require("./config/games");
+const { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, STANDING, PENALTY } = require("./config/games");
 const { normalizePhone } = require("./utils/phone");
 const { signToken, requireUser, optionalUser } = require("./middlewares/auth");
 const { GameError } = require("./games/hopOff");
@@ -14,7 +14,7 @@ const fair = require("./services/fair");
 // out over Socket.IO (socket.js).
 // With `webDir` (the built website), the same server also serves the site,
 // so one free web service runs everything (see render.yaml).
-function createApp({ store, hopOff, underdog, double, seven, wheel, standing, webDir }) {
+function createApp({ store, hopOff, underdog, double, seven, wheel, standing, penalties, webDir }) {
   const app = express();
   if (process.env.ENVIRONMENT !== "test") app.use(morgan("dev"));
   app.use(cors());
@@ -57,6 +57,7 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, standing, we
       double: { feeRate: DOUBLE.FEE_RATE, winsNeeded: DOUBLE.WINS_NEEDED, moveMs: DOUBLE.MOVE_MS },
       seven: { feeRate: SEVEN.FEE_RATE, seats: SEVEN.SEATS, rollMs: SEVEN.ROLL_MS },
       bigWheel: { feeRate: WHEEL.FEE_RATE, segments: WHEEL.SEGMENTS, openMs: WHEEL.OPEN_MS, spinMs: WHEEL.SPIN_MS },
+      penalties: { feeRate: PENALTY.FEE_RATE, spots: PENALTY.SPOTS, kicksEach: PENALTY.KICKS_EACH, kickMs: PENALTY.KICK_MS, cupSeats: PENALTY.CUP_SEATS },
       lastStanding: { feeRate: STANDING.FEE_RATE, seats: STANDING.SEATS, pickMs: STANDING.PICK_MS, maxRounds: STANDING.MAX_ROUNDS },
     })
   );
@@ -151,9 +152,19 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, standing, we
     app.post("/games/last-standing/dismiss", auth, play(async (req) => standing.dismiss(req.user.id)));
   }
 
+  // Penalties: a 1 v 1 duel or a 16-player cup.
+  if (penalties) {
+    app.get("/games/penalties", maybe, (req, res) => res.json(penalties.state(req.userId)));
+    app.post("/games/penalties/join", auth, play((req) => penalties.join(req.user.id, { mode: req.body.mode, stake: Number(req.body.stake) })));
+    app.post("/games/penalties/leave", auth, play((req) => penalties.leave(req.user.id)));
+    app.post("/games/penalties/kick", auth, play(async (req) => penalties.kick(req.user.id, Number(req.body.spot))));
+    app.post("/games/penalties/choose", auth, play((req) => penalties.choose(req.user.id, req.body.choice)));
+    app.post("/games/penalties/dismiss", auth, play(async (req) => penalties.dismiss(req.user.id)));
+  }
+
   // The public settlement log.
   app.get(
-    "/rounds/:game(hop-off|underdog|double|seven|big-wheel|last-standing)",
+    "/rounds/:game(hop-off|underdog|double|seven|big-wheel|last-standing|penalties)",
     asyncHandler(async (req, res) => {
       const limit = Math.min(Number(req.query.limit) || 20, 100);
       res.json({ rounds: await store.listRounds(req.params.game, limit) });

@@ -107,4 +107,25 @@ const STANDING = {
   QUESTIONS: UNDERDOG.QUESTIONS,
 };
 
-module.exports = { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, STANDING };
+// Penalties: shootouts between real players. The goal has 6 spots; the
+// striker picks one and the keeper dives to one (a match is a save). Players
+// swap between striker and keeper every kick, KICKS_EACH each, then sudden
+// death. Two modes:
+//   duel: 1 v 1; the winner takes both stakes less a fee from the loser's
+//   cup:  a 16-player knockout. Each win adds the beaten player's bank (less
+//         the fee) to yours; after every round you choose to cash out your
+//         bank or play on. Win all four rounds: about 13x.
+const PENALTY = {
+  SPOTS: 6,
+  KICKS_EACH: num(process.env.PENALTY_KICKS_EACH, 3),
+  KICK_MS: num(process.env.PENALTY_KICK_MS, 7000),
+  REVEAL_MS: num(process.env.PENALTY_REVEAL_MS, 2600),
+  CHOICE_MS: num(process.env.PENALTY_CHOICE_MS, 10000),
+  MAX_SUDDEN_DEATH: 6,
+  CUP_SEATS: num(process.env.PENALTY_CUP_SEATS, 16),
+  FEE_RATE: num(process.env.PENALTY_FEE_RATE, 0.1),
+  BOT_WAIT_MS: num(process.env.PENALTY_BOT_WAIT_MS, 5000),
+  BOTS: PRACTICE_PLAYERS,
+};
+
+module.exports = { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, STANDING, PENALTY };

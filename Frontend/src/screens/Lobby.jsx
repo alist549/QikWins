@@ -18,6 +18,7 @@ function Lobby() {
   const knockout = useLobby("last-standing");
   const duel = useLobby("double");
   const table = useLobby("seven");
+  const cup = useLobby("penalties");
   const [category, setCategory] = useState("all");
   const sum = (o) => Object.values(o || {}).reduce((a, b) => a + b, 0);
   const live = {
@@ -27,6 +28,7 @@ function Lobby() {
     seven: table && { people: sum(table.waiting) + table.live * table.seats },
     "big-wheel": wheel && { pool: wheel.pool + wheel.carryIn, people: wheel.players },
     "last-standing": knockout && { people: sum(knockout.waiting) + knockout.playing },
+    "spot-kick": cup && { people: sum(cup.waiting?.duel) + sum(cup.waiting?.cup) + cup.playing },
   };
 
   return (
