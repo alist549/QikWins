@@ -2,18 +2,14 @@ import { Link } from "react-router-dom";
 import GameArt from "./GameArt";
 import { money } from "../lib/money";
 
-// A lobby tile: animated cover art, a LIVE or SOON badge, and the live pool.
+// A lobby tile: animated cover art, the win from $1, a SOON badge for games
+// still to come, and the live pool.
 function GameTile({ game, live }) {
   const body = (
     <>
       <div className="tile-art relative aspect-square rounded-[22px] overflow-hidden shadow-float qw-shine group-hover:scale-[1.03] transition-transform duration-300">
         <GameArt game={game.id} />
-        {game.live ? (
-          <span className="absolute top-2.5 left-2.5 h-6 px-2 rounded-full bg-black/70 text-white text-[11px] font-bold inline-flex items-center gap-1.5 backdrop-blur">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FF3B30] qw-glow" aria-hidden />
-            LIVE{live?.people ? ` · ${live.people}` : ""}
-          </span>
-        ) : (
+        {!game.live && (
           <span className="absolute top-2.5 left-2.5 h-6 px-2 rounded-full bg-white/90 text-black text-[11px] font-bold inline-flex items-center">SOON</span>
         )}
         {game.hot && (

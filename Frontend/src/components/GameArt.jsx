@@ -1,7 +1,7 @@
 // Animated cover art for every game tile and banner. Plain SVG + CSS
 // (index.css "Game motion"), so it costs a few KB, not images.
 import { useId } from "react";
-import { RACES, raceById } from "../lib/races";
+import { raceById } from "../lib/races";
 
 // Gradient ids are made unique per copy: the same art can be on the page
 // twice (a tile and the desktop game list), and a hidden copy's gradient
@@ -409,51 +409,185 @@ function Mega() {
   );
 }
 
-// A race tile: lanes in the race's colours, its racers mid-race and a
-// chequered finish.
-function RaceArt({ id }) {
+// Race art: each race is its own scene, in its own colours.
+function RaceHead({ id }) {
   const race = raceById(id);
-  const hex = (n) => `#${n.toString(16).padStart(6, "0")}`;
-  const lanes = race.racers.slice(0, 6);
-  const h = 120 / lanes.length;
-  const shape = (r, x, y) => {
-    const c = hex(r.color);
-    if (race.racers[0].shape === "marble") return <circle cx={x} cy={y} r={h * 0.32} fill={c} stroke="#fff" strokeOpacity="0.5" />;
-    if (race.racers[0].shape === "rocket") return <polygon points={`${x - 14},${y - 5} ${x + 8},${y - 5} ${x + 16},${y} ${x + 8},${y + 5} ${x - 14},${y + 5}`} fill={c} />;
-    if (race.racers[0].shape === "drone") return <g fill={c}><rect x={x - 7} y={y - 4} width="14" height="8" rx="3" /><ellipse cx={x - 9} cy={y - 6} rx="6" ry="1.5" fill="#fff" opacity="0.7" /><ellipse cx={x + 9} cy={y - 6} rx="6" ry="1.5" fill="#fff" opacity="0.7" /></g>;
-    if (race.racers[0].shape === "boat") return <polygon points={`${x - 14},${y - 5} ${x + 8},${y - 5} ${x + 16},${y} ${x + 8},${y + 5} ${x - 14},${y + 5}`} fill="#f8fafc" stroke={c} strokeWidth="3" />;
-    if (race.racers[0].shape === "pod") return <ellipse cx={x} cy={y} rx="15" ry={h * 0.22} fill={c} stroke="#fff" strokeOpacity="0.5" />;
-    return <rect x={x - 14} y={y - h * 0.18} width="28" height={h * 0.36} rx={h * 0.18} fill={c} />;
-  };
+  return (
+    <>
+      <Big y="58" size="40" fill="#FDE047" className="qw-pulse">{race.max}</Big>
+      <Big y="190" size="14" sw="3" letterSpacing="1" className="qw-tagline">{race.name.toUpperCase()}</Big>
+    </>
+  );
+}
+
+// A neon funnel: glowing marbles spiral down to the gold hole.
+function MarbleMadness() {
+  const marbles = [["#F43F5E", 0], ["#22D3EE", 1.2], ["#FDE047", 2.4], ["#A3E635", 3.6]];
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full">
-      <Bg id={`g-${id}`} from={hex(race.sky[0])} to={hex(race.sky[1])} />
-      <g transform="translate(0 30)">
-        {lanes.map((r, i) => {
-          const y = i * h + h / 2;
-          const x = 40 + ((i * 37) % 90);
-          return (
-            <g key={r.name}>
-              <rect x="-10" y={i * h + 1} width="220" height={h - 2} fill="#fff" opacity={i % 2 ? 0.06 : 0.12} />
-              <rect x={x - 46} y={y - 1.5} width="34" height="3" rx="1.5" fill={hex(r.color)} opacity="0.5" />
-              <g className="qw-bob" style={{ animationDelay: `${i * 0.1}s` }}>{shape(r, x, y)}</g>
-            </g>
-          );
+      <Bg id="g-mm" from="#701A75" to="#DB2777" />
+      {[78, 60, 42, 24].map((r, i) => (
+        <ellipse key={r} cx="100" cy="128" rx={r} ry={r * 0.42} fill="none" stroke={["#F0ABFC", "#C084FC", "#818CF8", "#67E8F9"][i]} strokeWidth="5" opacity="0.9" />
+      ))}
+      <ellipse cx="100" cy="128" rx="10" ry="4" fill="#0A0A0A" stroke="#FDE047" strokeWidth="3" />
+      <g>
+        {marbles.map(([c, d], i) => {
+          const a = (i / marbles.length) * Math.PI * 2;
+          const r = [78, 60, 42, 24][i];
+          return <circle key={c} cx={100 + Math.cos(a) * r} cy={128 + Math.sin(a) * r * 0.42} r="8" fill={c} stroke="#fff" strokeWidth="2" className="qw-pulse" style={{ animationDelay: `${d / 3}s` }} />;
         })}
-        {Array.from({ length: 20 }, (_, k) => (
-          <rect key={k} x={172 + (k % 2) * 6} y={k * 6} width="6" height="6" fill={(k + Math.floor(k / 2)) % 2 ? "#fff" : "#0A0A0A"} />
-        ))}
       </g>
-      <g className="qw-streak" opacity="0.5">
-        {[[30, 20], [90, 12], [140, 26]].map(([x, y]) => (
-          <rect key={x} x={x} y={y} width="40" height="2" rx="1" fill="#fff" />
-        ))}
-      </g>
-      <Big y="30" size="26" fill="#FDE047" className="qw-tagline">{`${race.max} FROM $1`}</Big>
-      <Big y="190" size="14" sw="3" letterSpacing="1" className="qw-tagline">{race.name.toUpperCase()}</Big>
+      <Sparkles at={[[24, 82], [176, 86], [150, 176, 5], [44, 176, 5]]} />
+      <RaceHead id="marble-madness" />
     </svg>
   );
 }
+
+// A red race car flat out past the kerbs, chequered flag waving.
+function GrandPrix() {
+  return (
+    <svg viewBox="0 0 200 200" className="w-full h-full">
+      <Bg id="g-gp" from="#7F1D1D" to="#F97316" />
+      <rect x="-20" y="138" width="240" height="40" fill="#27272A" />
+      {Array.from({ length: 12 }, (_, i) => (
+        <rect key={i} x={i * 20 - 10} y="132" width="10" height="6" fill={i % 2 ? "#fff" : "#DC2626"} className="qw-road" />
+      ))}
+      <line x1="-20" y1="158" x2="220" y2="158" stroke="#fff" strokeWidth="3" strokeDasharray="16 10" className="qw-road" />
+      <g className="qw-streak" opacity="0.6">
+        {[96, 112, 124].map((y, i) => <rect key={y} x={i * 30} y={y} width="50" height="3" rx="1.5" fill="#fff" />)}
+      </g>
+      <g className="qw-bob">
+        <path d="M40 128 L58 112 H96 L112 100 H132 L136 112 H162 L170 128 Z" fill="#DC2626" stroke="#0A0A0A" strokeWidth="3" strokeLinejoin="round" />
+        <rect x="150" y="104" width="22" height="6" rx="2" fill="#0A0A0A" />
+        <rect x="30" y="112" width="16" height="6" rx="2" fill="#0A0A0A" />
+        <path d="M104 104 q10 -10 22 0" fill="#FDE047" stroke="#0A0A0A" strokeWidth="2" />
+        {[62, 146].map((x) => (
+          <g key={x}>
+            <circle cx={x} cy="130" r="13" fill="#0A0A0A" />
+            <circle cx={x} cy="130" r="5" fill="#A1A1AA" />
+          </g>
+        ))}
+      </g>
+      <g transform="translate(170 26)">
+        <line x1="0" y1="0" x2="0" y2="60" stroke="#fff" strokeWidth="3" />
+        <g className="qw-tug">
+          {Array.from({ length: 12 }, (_, k) => (
+            <rect key={k} x={2 + (k % 4) * 7} y={2 + Math.floor(k / 4) * 7} width="7" height="7" fill={(k + Math.floor(k / 4)) % 2 ? "#fff" : "#0A0A0A"} />
+          ))}
+        </g>
+      </g>
+      <RaceHead id="grand-prix" />
+    </svg>
+  );
+}
+
+// Rockets climbing on fire trails past a ringed planet.
+function RocketRace() {
+  const rockets = [[56, "#F43F5E", 0], [100, "#22D3EE", 0.4], [144, "#FDE047", 0.8]];
+  return (
+    <svg viewBox="0 0 200 200" className="w-full h-full">
+      <Bg id="g-rr" from="#1E1B4B" to="#4338CA" />
+      {[[20, 20], [60, 80], [170, 90], [140, 20], [30, 120], [180, 150]].map(([x, y]) => <circle key={`${x}${y}`} cx={x} cy={y} r="1.6" fill="#fff" className="qw-glow" />)}
+      <circle cx="176" cy="176" r="22" fill="#F59E0B" />
+      <ellipse cx="176" cy="176" rx="34" ry="7" fill="none" stroke="#FDE68A" strokeWidth="3" transform="rotate(-20 176 176)" />
+      {rockets.map(([x, c, d]) => (
+        <g key={x} transform={`translate(${x} ${x === 100 ? 88 : 104})`}>
+          <g className="qw-float" style={{ animationDelay: `${d}s` }}>
+            <path d="M-6 30 Q0 64 6 30 Z" fill="#F97316" className="qw-glow" />
+            <path d="M-3 30 Q0 50 3 30 Z" fill="#FDE047" />
+            <path d="M0 -12 Q10 0 9 26 H-9 Q-10 0 0 -12 Z" fill="#fff" stroke="#0A0A0A" strokeWidth="2.5" strokeLinejoin="round" />
+            <circle cx="0" cy="6" r="4" fill={c} stroke="#0A0A0A" strokeWidth="2" />
+            <path d="M-9 16 L-16 30 H-9 Z M9 16 L16 30 H9 Z" fill={c} stroke="#0A0A0A" strokeWidth="2" strokeLinejoin="round" />
+          </g>
+        </g>
+      ))}
+      <RaceHead id="rocket-race" />
+    </svg>
+  );
+}
+
+// Racing drones through neon gates over a night city.
+function DroneDash() {
+  return (
+    <svg viewBox="0 0 200 200" className="w-full h-full">
+      <Bg id="g-dd" from="#083344" to="#0891B2" />
+      <g fill="#0A0A0A" opacity="0.55">
+        {[[0, 140, 26, 60], [28, 120, 20, 80], [50, 150, 30, 50], [84, 130, 18, 70], [106, 112, 24, 88], [134, 146, 26, 54], [162, 124, 22, 76], [186, 150, 20, 50]].map(([x, y, w, h]) => <rect key={x} x={x} y={y} width={w} height={h} />)}
+      </g>
+      {[[64, 108, "#F0ABFC"], [140, 96, "#A3E635"]].map(([x, y, c]) => (
+        <ellipse key={x} cx={x} cy={y} rx="14" ry="26" fill="none" stroke={c} strokeWidth="5" className="qw-glow" />
+      ))}
+      {[[40, 104, "#F43F5E", 0], [110, 92, "#FDE047", 0.5], [160, 112, "#fff", 1]].map(([x, y, c, d]) => (
+        <g key={x} transform={`translate(${x} ${y})`}>
+          <g className="qw-float" style={{ animationDelay: `${d}s` }}>
+            <rect x="-9" y="-4" width="18" height="9" rx="4" fill={c} stroke="#0A0A0A" strokeWidth="2" />
+            <line x1="-14" y1="-7" x2="14" y2="-7" stroke="#0A0A0A" strokeWidth="2" />
+            <ellipse cx="-14" cy="-8" rx="8" ry="2" fill="#E0F2FE" opacity="0.9" />
+            <ellipse cx="14" cy="-8" rx="8" ry="2" fill="#E0F2FE" opacity="0.9" />
+          </g>
+        </g>
+      ))}
+      <Sparkles at={[[24, 80], [180, 70, 5]]} />
+      <RaceHead id="drone-dash" />
+    </svg>
+  );
+}
+
+// A speedboat cutting across bright water, spray flying.
+function Powerboat() {
+  return (
+    <svg viewBox="0 0 200 200" className="w-full h-full">
+      <Bg id="g-pb" from="#0369A1" to="#2DD4BF" />
+      <circle cx="160" cy="80" r="16" fill="#FDE047" opacity="0.9" />
+      <rect x="-20" y="120" width="240" height="90" fill="#0E7490" />
+      {[128, 146, 166].map((y, i) => (
+        <path key={y} d={`M-20 ${y} q15 -6 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0`} fill="none" stroke="#A5F3FC" strokeWidth="3" opacity={0.8 - i * 0.2} className="qw-road" />
+      ))}
+      <g className="qw-bob">
+        <path d="M44 124 H150 L170 108 H120 L108 96 H76 L68 108 H44 Z" fill="#fff" stroke="#0A0A0A" strokeWidth="3" strokeLinejoin="round" />
+        <path d="M44 124 H150 L162 114 H50 Z" fill="#DC2626" />
+        <rect x="84" y="100" width="18" height="8" rx="2" fill="#0EA5E9" stroke="#0A0A0A" strokeWidth="2" />
+        <path d="M36 122 q-14 -14 -24 -4 q10 -18 26 -8" fill="#E0F2FE" opacity="0.95" className="qw-glow" />
+      </g>
+      <Sparkles at={[[24, 86], [130, 150, 5], [184, 136, 5]]} color="#fff" />
+      <RaceHead id="powerboat" />
+    </svg>
+  );
+}
+
+// Warp tunnel: star streaks rushing out from the centre, a pod in the middle.
+function Hyperdrive() {
+  return (
+    <svg viewBox="0 0 200 200" className="w-full h-full">
+      <Bg id="g-hd" from="#2E1065" to="#BE185D" />
+      <g className="qw-spin" style={{ animationDuration: "14s" }}>
+        {Array.from({ length: 24 }, (_, i) => {
+          const a = (i / 24) * Math.PI * 2;
+          const r0 = 26 + (i % 3) * 8;
+          const r1 = 90 + (i % 4) * 12;
+          return <line key={i} x1={100 + Math.cos(a) * r0} y1={118 + Math.sin(a) * r0} x2={100 + Math.cos(a) * r1} y2={118 + Math.sin(a) * r1} stroke={i % 3 ? "#F0ABFC" : "#67E8F9"} strokeWidth={i % 2 ? 2 : 3} strokeLinecap="round" opacity="0.8" />;
+        })}
+      </g>
+      <circle cx="100" cy="118" r="22" fill="#fff" opacity="0.18" className="qw-pulse" />
+      <g className="qw-bob">
+        <ellipse cx="100" cy="122" rx="30" ry="11" fill="#E5E7EB" stroke="#0A0A0A" strokeWidth="3" />
+        <ellipse cx="100" cy="116" rx="13" ry="8" fill="#22D3EE" stroke="#0A0A0A" strokeWidth="2.5" />
+        <circle cx="74" cy="124" r="3" fill="#F472B6" />
+        <circle cx="126" cy="124" r="3" fill="#F472B6" />
+      </g>
+      <RaceHead id="hyperdrive" />
+    </svg>
+  );
+}
+
+const RACE_ART = {
+  "marble-madness": MarbleMadness,
+  "grand-prix": GrandPrix,
+  "rocket-race": RocketRace,
+  "drone-dash": DroneDash,
+  powerboat: Powerboat,
+  hyperdrive: Hyperdrive,
+};
 
 export const ART = {
   mega: Mega,
@@ -471,8 +605,7 @@ export const ART = {
 };
 
 function GameArt({ game }) {
-  if (RACES.some((r) => r.id === game)) return <RaceArt id={game} />;
-  const Art = ART[game];
+  const Art = ART[game] || RACE_ART[game];
   return Art ? <Art /> : null;
 }
 
