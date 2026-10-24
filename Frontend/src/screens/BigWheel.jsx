@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { Timer, Users, Zap } from "lucide-react";
 import Page from "../components/Page";
 import StakeChips from "../components/StakeChips";
-import PixiCanvas from "../components/PixiCanvas";
+import SpinWheel from "../components/SpinWheel";
 import WinBurst from "../components/WinBurst";
 import Counter from "../components/Counter";
 import { useSession } from "../contexts/SessionContext";
@@ -13,9 +13,9 @@ import { useRules } from "../lib/useRules";
 import { api } from "../lib/api";
 import { money } from "../lib/money";
 import { sfx, useCountdownTicks } from "../lib/sound";
-import { SEGMENTS, cssColor, wheelScene } from "../scenes/wheel";
+import { SEGMENTS, cssColor } from "../scenes/wheel";
 
-const scene = (app, PIXI) => wheelScene(app, PIXI, { onTick: () => sfx("spinTick") });
+const tick = () => sfx("spinTick");
 const LABEL = { open: "Spins in", spinning: "Spinning", result: "Next spin" };
 
 // Big Wheel: stake on any segments; the segments fewest people backed pay
@@ -76,7 +76,7 @@ function BigWheel() {
       {/* The stage */}
       <div className="relative rounded-[28px] overflow-hidden bg-[radial-gradient(circle_at_50%_40%,#4C1D95,#1E1B4B_70%)] shadow-float">
         <div className="h-[19rem] lg:h-[26rem]">
-          <PixiCanvas scene={scene} label="The Big Wheel" props={{ phase, winning: win, selected: segment, spinMs: rules?.bigWheel?.spinMs }} />
+          <SpinWheel label="The Big Wheel" phase={phase} winning={win} selected={segment} endsAt={state?.endsAt} serverNow={state?.serverNow} spinMs={rules?.bigWheel?.spinMs} onTick={tick} />
         </div>
         <div className="absolute top-3 left-3 right-3 flex justify-between z-10 pointer-events-none">
           <span className="h-8 px-3 rounded-full bg-black/55 text-white text-xs font-bold inline-flex items-center gap-1.5">

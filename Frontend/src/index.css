@@ -158,3 +158,12 @@ svg [class*="qw-"] { transform-box: fill-box; transform-origin: center; }
 @media (hover: hover) {
   .tile-art:not(:hover) * { animation-play-state: paused; }
 }
+
+/* Big Wheel bulbs: a ring of lights that turns (a cheap transform). */
+.qw-bulbs-slow, .qw-bulbs-fast {
+  background: repeating-conic-gradient(from 0deg, #FDE047 0deg 4deg, transparent 4deg 15deg);
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 9px), #000 calc(100% - 8px), #000 calc(100% - 2px), transparent 100%);
+  mask: radial-gradient(closest-side, transparent calc(100% - 9px), #000 calc(100% - 8px), #000 calc(100% - 2px), transparent 100%);
+  animation: qw-spin 8s linear infinite;
+}
+.qw-bulbs-fast { animation-duration: 1.2s; }
