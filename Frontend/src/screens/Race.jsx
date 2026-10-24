@@ -15,6 +15,7 @@ import { money } from "../lib/money";
 import { sfx, useCountdownTicks } from "../lib/sound";
 import { css, raceById } from "../lib/races";
 import { raceScene } from "../scenes/race";
+import { marbleScene } from "../scenes/marble";
 
 const LABEL = { open: "Off in", spinning: "Racing", result: "Next race" };
 
@@ -38,7 +39,7 @@ function Race({ id }) {
   const runMs = rules?.races?.[id]?.runMs ?? 8000;
   useCountdownTicks(phase === "open" ? seconds : 0);
 
-  const scene = useCallback((app, PIXI) => raceScene(app, PIXI, theme, { onStart: () => sfx("whoosh"), onFinish: () => sfx("reveal") }), [theme]);
+  const scene = useCallback((app, PIXI) => (theme.engine === "marble" ? marbleScene : raceScene)(app, PIXI, theme, { onStart: () => sfx("whoosh"), onFinish: () => sfx("reveal") }), [theme]);
 
   useEffect(() => {
     if (phase !== "result" || celebrated.current === state.roundId) return;

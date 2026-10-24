@@ -15,6 +15,7 @@ export const RACES = [
     pick: "Back a marble",
     max: "$7+",
     racers: named(TEAMS, LIVERY, { shape: "marble" }),
+    engine: "marble",
     sky: [0x0b0820, 0x1e1b4b],
     track: 0x1e1b4b,
     bg: "from-[#0B0820] via-[#312E81] to-[#9D174D]",
