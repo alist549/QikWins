@@ -80,7 +80,7 @@ function Race({ id }) {
     <Page title={theme.name} back="/" track="game" glow={theme.glow}>
       <div className={`relative rounded-[28px] overflow-hidden bg-gradient-to-br ${theme.bg} shadow-float`}>
         <div className="h-[17rem] lg:h-[26rem]">
-          <PixiCanvas scene={scene} label={`${theme.name} track`} props={{ phase, winning: win, roundId: state?.roundId, endsAt: state?.endsAt, runMs, selected: racer }} />
+          <PixiCanvas scene={scene} label={`${theme.name} track`} props={{ phase, winning: win, roundId: state?.roundId, endsAt: state?.endsAt, serverNow: state?.serverNow, runMs, selected: racer }} />
         </div>
         <div className="absolute top-3 left-3 right-3 flex justify-between z-10 pointer-events-none">
           <span className="h-8 px-3 rounded-full bg-black/60 text-white text-xs font-bold inline-flex items-center gap-1.5">

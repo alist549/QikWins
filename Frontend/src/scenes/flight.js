@@ -136,12 +136,24 @@ export async function flightScene(app, PIXI) {
     jet.body = body;
   }
 
+  // Smoke puffs come from a fixed pool and are reused, so the trail never
+  // creates or destroys shapes while the jet flies.
+  const puffs = Array.from({ length: 48 }, () => {
+    const p = new Graphics().circle(0, 0, 4.5).fill({ color: 0xffffff, alpha: 0.7 });
+    p.visible = false;
+    p.life = 0;
+    trail.addChild(p);
+    return p;
+  });
+  let nextPuff = 0;
   function spawnPuff() {
-    const p = new Graphics().circle(0, 0, 3 + Math.random() * 3).fill({ color: 0xffffff, alpha: 0.7 });
+    const p = puffs[nextPuff];
+    nextPuff = (nextPuff + 1) % puffs.length;
     p.x = jet.x - 50;
     p.y = jet.y + (Math.random() - 0.5) * 4;
+    p.base = 0.7 + Math.random() * 0.6;
     p.life = 1;
-    trail.addChild(p);
+    p.visible = true;
   }
 
   function spawnChute(big) {
@@ -209,12 +221,13 @@ export async function flightScene(app, PIXI) {
     jet.body.tint = props.caught ? mix(0xffffff, 0xff6b6b, stormLevel) : 0xffffff;
 
     if (speed > 0.3 && Math.random() < 0.5 * speed) spawnPuff();
-    for (const p of [...trail.children]) {
+    for (const p of puffs) {
+      if (!p.visible) continue;
       p.x -= 3 * speed * dt;
       p.life -= 0.02 * dt;
       p.alpha = Math.max(0, p.life * 0.7);
-      p.scale.set(1 + (1 - p.life) * 1.5);
-      if (p.life <= 0) p.destroy();
+      p.scale.set(p.base * (1 + (1 - p.life) * 1.5));
+      if (p.life <= 0) p.visible = false;
     }
     for (const c of [...chutes.children]) {
       c.y += 0.55 * dt;
@@ -224,13 +237,23 @@ export async function flightScene(app, PIXI) {
     }
 
     stormLevel += ((props.caught ? 1 : 0) - stormLevel) * 0.05 * dt;
-    storm.clear();
-    if (stormLevel > 0.01) {
-      storm.rect(0, 0, W(), H()).fill({ color: 0x1e1b4b, alpha: 0.5 * stormLevel });
-      for (let i = 0; i < 5; i++) storm.circle(((i * 97 + t * 10) % (W() + 80)) - 40, 18 + (i % 2) * 14, 34).fill({ color: 0x334155, alpha: 0.8 * stormLevel });
+    // The storm is drawn once per screen size; it only fades and drifts.
+    storm.visible = stormLevel > 0.01;
+    if (storm.visible) {
+      if (storm.drawnFor !== W()) {
+        storm.drawnFor = W();
+        storm.clear().rect(-W(), 0, W() * 3, H()).fill({ color: 0x1e1b4b, alpha: 0.5 });
+        for (let i = -2; i < W() / 97 + 2; i++) storm.circle(i * 97 - 40, 18 + (i % 2) * 14, 34).fill({ color: 0x334155, alpha: 0.8 });
+      }
+      storm.alpha = stormLevel;
+      storm.x = (t * 10) % 194;
     }
-    flash.clear();
+    if (flash.lit) {
+      flash.clear();
+      flash.lit = false;
+    }
     if (props.caught && stormLevel > 0.3 && Math.random() < 0.025 * dt) {
+      flash.lit = true;
       flash.rect(0, 0, W(), H()).fill({ color: 0xffffff, alpha: 0.55 });
       const x = jet.x + 30;
       flash.moveTo(x, 0).lineTo(x - 12, jet.y * 0.45).lineTo(x + 6, jet.y * 0.5).lineTo(x - 6, jet.y - 6).stroke({ width: 3, color: 0xfde047 });

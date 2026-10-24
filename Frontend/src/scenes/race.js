@@ -24,6 +24,12 @@ export async function raceScene(app, PIXI, theme, { onStart, onFinish } = {}) {
   let finished = false;
   let started = null;
   let t = 0;
+  // The race runs on this screen's own clock once it starts, so a late or
+  // early server update never makes the racers jump. clockOffset is the
+  // server's clock minus ours, from the last update.
+  let clockOffset = 0;
+  let lastServerNow = null;
+  let localEnd = null;
   let geo = null;
   const stars = Array.from({ length: 40 }, () => ({ x: Math.random(), y: Math.random(), s: Math.random() }));
 
@@ -189,10 +195,12 @@ export async function raceScene(app, PIXI, theme, { onStart, onFinish } = {}) {
       planKey = roundId;
       finished = false;
       started = null;
+      const left = running ? Math.min(runMs, Math.max(0, endsAt - (Date.now() + clockOffset))) : 0;
+      localEnd = performance.now() + left;
     }
+    const u = localEnd == null ? 1 : Math.min(1, Math.max(0, 1 - (localEnd - performance.now()) / runMs));
     let pos;
-    if (running) {
-      const u = Math.max(0, 1 - (endsAt - Date.now()) / runMs);
+    if (running || (done && u < 1)) {
       if (started !== roundId) {
         started = roundId;
         onStart?.();
@@ -205,6 +213,7 @@ export async function raceScene(app, PIXI, theme, { onStart, onFinish } = {}) {
       }
     } else if (done) {
       pos = plan(1);
+      localEnd = null;
       if (!finished) {
         finished = true;
         burst(winning);
@@ -215,7 +224,7 @@ export async function raceScene(app, PIXI, theme, { onStart, onFinish } = {}) {
     pos.forEach((p, i) => place(i, p));
 
     racers.children.forEach((c, i) => {
-      const moving = running && pos[i] < 1;
+      const moving = (running || (done && u < 1)) && pos[i] < 1;
       if (c.spin) c.rotation += moving ? 0.25 * dt : 0;
       if (c.bob) c.y += Math.sin(t * (moving ? 14 : 3) + i) * (moving ? 2 : 1);
       if (c.flame) {
@@ -241,6 +250,10 @@ export async function raceScene(app, PIXI, theme, { onStart, onFinish } = {}) {
   return {
     update(next) {
       props = next || {};
+      if (props.serverNow && props.serverNow !== lastServerNow) {
+        lastServerNow = props.serverNow;
+        clockOffset = props.serverNow - Date.now();
+      }
     },
     destroy() {},
   };

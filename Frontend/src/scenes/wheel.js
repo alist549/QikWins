@@ -47,6 +47,7 @@ export async function wheelScene(app, PIXI, { onTick } = {}) {
     R = size * 0.42;
     root.x = app.screen.width / 2;
     root.y = app.screen.height / 2 + size * 0.03;
+    glow.clear().circle(0, 0, R + 30).fill(0xffffff);
     wheel.removeChildren();
     for (let i = 0; i < n; i++) {
       const a0 = -Math.PI / 2 - slice / 2 + i * slice;
@@ -137,9 +138,9 @@ export async function wheelScene(app, PIXI, { onTick } = {}) {
       b.tint = on ? 0xfde047 : 0x9ca3af;
       b.alpha = on ? 1 : 0.6;
     });
-    glow.clear();
-    const pulse = mode === "landed" ? 0.35 + Math.sin(t * 8) * 0.15 : 0.18;
-    glow.circle(0, 0, R + 30).fill({ color: highlight != null ? SEGMENTS[highlight].color : 0xfacc15, alpha: pulse });
+    // The glow is drawn once in white; colour and strength change per frame.
+    glow.alpha = mode === "landed" ? 0.35 + Math.sin(t * 8) * 0.15 : 0.18;
+    glow.tint = highlight != null ? SEGMENTS[highlight].color : 0xfacc15;
 
     for (const s of [...sparks.children]) {
       s.x += s.vx * dt;
@@ -168,7 +169,9 @@ export async function wheelScene(app, PIXI, { onTick } = {}) {
         while (to > angle - turns) to -= Math.PI * 2;
         mode = "spinning";
         spin = { from: angle, to, start: performance.now(), duration: Math.max(1500, (next.spinMs || 5500) - 400) };
-      } else if (next.phase === "result" && mode !== "landed") {
+      } else if (next.phase === "result" && mode === "idle") {
+        // Joined after the spin: show where it landed. A spin already
+        // under way finishes on its own instead of jumping.
         angle = -next.winning * slice;
         mode = "landed";
       }

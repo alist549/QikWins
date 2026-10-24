@@ -62,6 +62,9 @@ function createBigWheel({ store, publish = () => {}, notify = () => {}, config =
       hash: round.hash,
       segments: config.SEGMENTS,
       endsAt: round.endsAt,
+      // The server's clock, so screens can time animations against endsAt
+      // even when the player's clock is off.
+      serverNow: now(),
       feeRate: config.FEE_RATE,
       players: new Set(round.bets.map((b) => b.userId)).size,
       pool: t.reduce((a, b) => a + b, 0),
