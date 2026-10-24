@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -21,12 +21,12 @@
 
 :root.dark,
 .dark {
-  --bg: 11 8 32;
-  --surface: 31 26 66;
-  --raised: 24 20 54;
-  --line: 52 45 98;
-  --fg: 250 250 250;
-  --muted: 170 166 204;
+  --bg: 7 6 10;
+  --surface: 24 21 28;
+  --raised: 16 14 20;
+  --line: 58 50 40;
+  --fg: 250 247 240;
+  --muted: 176 166 150;
   --primary: 250 250 250;
   --on-primary: 10 10 10;
   --brand: 0 144 253;
@@ -59,10 +59,10 @@ body {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(45% 40% at 15% 15%, rgb(var(--glow-a) / 0.5), transparent 70%),
-    radial-gradient(40% 35% at 85% 20%, rgb(var(--glow-b) / 0.42), transparent 70%),
-    radial-gradient(45% 40% at 80% 85%, rgb(var(--glow-a) / 0.35), transparent 70%),
-    radial-gradient(40% 35% at 20% 90%, rgb(var(--glow-b) / 0.3), transparent 70%),
+    radial-gradient(45% 40% at 15% 10%, rgb(var(--glow-a) / 0.38), transparent 70%),
+    radial-gradient(40% 35% at 85% 18%, rgb(var(--glow-b) / 0.3), transparent 70%),
+    radial-gradient(45% 40% at 80% 88%, rgb(var(--glow-a) / 0.22), transparent 70%),
+    radial-gradient(60% 30% at 50% 0%, rgb(212 175 55 / 0.12), transparent 70%),
     rgb(var(--bg));
   animation: qw-drift 24s ease-in-out infinite alternate;
 }
@@ -148,3 +148,59 @@ svg [class*="qw-"] { transform-box: fill-box; transform-origin: center; }
 
 /* Lobby tiles carry their own win badge, so the art drops its small print. */
 .tile-art .qw-tagline { display: none; }
+
+/* ---- Las Vegas finish: gold, chrome, marquee lights, velvet ---- */
+/* Velvet grain over the whole night background. */
+.dark body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0 0.05 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.font-display { font-family: "Cinzel", Georgia, serif; letter-spacing: 0.01em; }
+/* Polished gold lettering for wins and jackpots. */
+.qw-gold-text {
+  font-family: "Cinzel", Georgia, serif;
+  background: linear-gradient(180deg, #FFF8DC 0%, #F7D774 28%, #D4A017 52%, #FFE9A3 64%, #B8860B 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 2px 0 rgb(80 50 0 / 0.9)) drop-shadow(0 6px 14px rgb(0 0 0 / 0.55));
+}
+/* A thin gold edge, for cards and tiles. */
+.qw-frame { box-shadow: inset 0 0 0 1px rgb(240 200 100 / 0.55), inset 0 1px 0 rgb(255 240 200 / 0.6), 0 14px 40px -12px rgb(0 0 0 / 0.8); }
+/* Gold buttons, like a casino cashier. */
+.qw-gold-btn {
+  background: linear-gradient(180deg, #FFE9A3 0%, #F2C94C 35%, #C9971C 70%, #E8B93A 100%);
+  color: #1A1206;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7), inset 0 -2px 0 rgb(120 80 0 / 0.5), 0 8px 24px -8px rgb(212 160 23 / 0.7);
+}
+/* Glossy sheen across the top of art and banners. */
+.qw-gloss::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.22) 0%, rgb(255 255 255 / 0.04) 38%, transparent 40%), radial-gradient(120% 90% at 50% 120%, rgb(0 0 0 / 0.55), transparent 60%);
+}
+/* Marquee bulbs around a sign: two rows of lights that chase. */
+.qw-bulbs { position: relative; }
+.qw-bulbs::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 30;
+  --bulb: radial-gradient(circle, #FFF3C4 0 2px, rgb(255 200 80 / 0.55) 3px, transparent 4.5px);
+  background: var(--bulb) 0 0 / 16px 16px repeat-x, var(--bulb) 0 100% / 16px 16px repeat-x, var(--bulb) 0 0 / 16px 16px repeat-y, var(--bulb) 100% 0 / 16px 16px repeat-y;
+  animation: qw-chase 0.8s steps(2) infinite;
+  -webkit-mask: linear-gradient(#000 0 0);
+}
+@keyframes qw-chase { to { background-position: 16px 0, -16px 100%, 0 -16px, 100% 16px; } }
+/* Art gets real depth: soft shadows under every shape. */
+.qw-art > g, .qw-art > text { filter: drop-shadow(0 3px 3px rgb(0 0 0 / 0.45)); }

@@ -55,7 +55,7 @@ function WinBurst({ amount, label = "You won" }) {
         transition={{ duration: 2.8, times: [0, 0.15, 0.25, 1] }}
       >
         <div className="text-2xl lg:text-4xl font-black uppercase tracking-[0.15em] text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.6)]">{label}</div>
-        <div className="text-7xl lg:text-9xl font-black tracking-tighter tabular bg-gradient-to-b from-[#FEF9C3] via-[#FDE047] to-[#F59E0B] bg-clip-text text-transparent drop-shadow-[0_6px_24px_rgba(249,115,22,0.6)]">
+        <div className="text-7xl lg:text-9xl font-black tracking-tighter tabular qw-gold-text drop-shadow-[0_6px_24px_rgba(249,115,22,0.6)]">
           {money(amount, { sign: true })}
         </div>
       </motion.div>

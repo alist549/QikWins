@@ -5,7 +5,7 @@ import Spinner from "./Spinner";
 // brand (QikDrive blue), ghost (text only) or danger (outline in red).
 const VARIANTS = {
   primary: "bg-primary text-on-primary hover:opacity-90",
-  brand: "bg-brand text-white hover:opacity-90",
+  brand: "qw-gold-btn font-bold hover:brightness-110",
   secondary: "border border-fg/30 bg-bg text-fg hover:bg-surface",
   ghost: "text-fg hover:bg-surface",
   danger: "border border-danger/40 text-danger hover:bg-danger/10",
