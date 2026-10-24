@@ -124,7 +124,7 @@ function Penalties() {
     <Page title="Penalties" back="/" glow={["22 163 74", "202 138 4"]} track={status === "idle" ? "lobby" : "game"}>
       {status === "idle" && (
         <div className="flex flex-col gap-4 animate-sheet-up">
-          <div className="relative h-44 rounded-[28px] overflow-hidden shadow-float">
+          <div className="relative h-52 rounded-[28px] overflow-hidden shadow-float">
             <GameArt game="spot-kick" />
           </div>
           <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Mode">

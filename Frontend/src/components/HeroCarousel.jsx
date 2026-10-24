@@ -5,11 +5,11 @@ import GameArt from "./GameArt";
 // The lobby's banner: slides that change every few seconds, swipe-free.
 const SLIDES = [
   { art: "mega", kicker: "Mega Jackpot · 2,500 players", winLabel: "JACKPOT FROM $1", win: "$2,250", title: "Outlast them all and it's yours. Play now!", cta: "Play for $1", to: "/play/mega-jackpot", bg: "from-[#78350F] via-[#CA8A04] to-[#DB2777]" },
-  { art: "big-wheel", kicker: "Jackpot rolls over", title: "Back the lonely segment. Take it all.", win: "50x+", cta: "Spin to win", to: "/play/big-wheel", bg: "from-[#4C1D95] via-[#DB2777] to-[#F97316]" },
-  { art: "spot-kick", kicker: "1 v 1 or a 16-player World Cup", title: "Win the cup. Lift the pot.", win: "13x", cta: "Take your shot", to: "/play/penalties", bg: "from-[#065F46] via-[#16A34A] to-[#CA8A04]" },
-  { art: "last-standing", kicker: "32 players · 1 pot", title: "Outlast them all.", win: "29x", cta: "Join the knockout", to: "/play/last-standing", bg: "from-[#7F1D1D] to-[#F97316]" },
-  { art: "seven", kicker: "8 players · 1 table", title: "Out-roll 7 players.", win: "7x", cta: "Roll now", to: "/play/seven", bg: "from-[#F97316] via-[#EC4899] to-[#7C3AED]" },
-  { art: "double", kicker: "Head to head", title: "Rock, paper, double up!", win: "2x", cta: "Play x2", to: "/play/double", bg: "from-[#00C2FF] to-[#7C3AED]" },
+  { art: "big-wheel", kicker: "Jackpot rolls over", title: "Back the lonely segment. Take it all.", win: "$50+", cta: "Spin to win", to: "/play/big-wheel", bg: "from-[#4C1D95] via-[#DB2777] to-[#F97316]" },
+  { art: "spot-kick", kicker: "1 v 1 or a 16-player World Cup", title: "Win the cup. Lift the pot.", win: "$13.04", cta: "Take your shot", to: "/play/penalties", bg: "from-[#065F46] via-[#16A34A] to-[#CA8A04]" },
+  { art: "last-standing", kicker: "32 players · 1 pot", title: "Outlast them all.", win: "$28.90", cta: "Join the knockout", to: "/play/last-standing", bg: "from-[#7F1D1D] to-[#F97316]" },
+  { art: "seven", kicker: "8 players · 1 table", title: "Out-roll 7 players.", win: "$7.30", cta: "Roll now", to: "/play/seven", bg: "from-[#F97316] via-[#EC4899] to-[#7C3AED]" },
+  { art: "double", kicker: "Head to head", title: "Rock, paper, double up!", win: "$1.90", cta: "Play x2", to: "/play/double", bg: "from-[#00C2FF] to-[#7C3AED]" },
   { art: "hop-off", kicker: "Fly the world", title: "Fly further. Win bigger. Hop off in time!", cta: "Play Hop Off", to: "/play/hop-off", bg: "from-[#0040A0] to-[#007DFE]" },
   { art: "underdog", kicker: "Beat the crowd", title: "The smaller side wins.", cta: "Play Underdog", to: "/play/underdog", bg: "from-[#4C1D95] to-[#DB2777]" },
   { art: "last-standing", kicker: "Why QikWins", title: "The house never plays. You do.", cta: "See why", to: "/why", bg: "from-[#0A0A0A] to-[#3F3F46]" },
@@ -35,7 +35,7 @@ function HeroCarousel() {
               <div className="text-[11px] lg:text-sm font-bold uppercase tracking-wider opacity-80">{s.kicker}</div>
               {s.win && (
                 <div className="mt-0.5 flex items-baseline gap-2 leading-none">
-                  <span className="text-[11px] lg:text-base font-black tracking-wider">{s.winLabel || "WIN UP TO"}</span>
+                  <span className="text-[11px] lg:text-base font-black tracking-wider">{s.winLabel || (s.win.endsWith("+") ? "FROM $1, WIN" : "FROM $1, WIN UP TO")}</span>
                   <span className="text-[40px] lg:text-[96px] font-black tracking-tighter bg-gradient-to-b from-[#FEF9C3] via-[#FDE047] to-[#F59E0B] bg-clip-text text-transparent drop-shadow-[0_3px_10px_rgba(0,0,0,0.35)]">{s.win}</span>
                 </div>
               )}

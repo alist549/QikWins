@@ -27,75 +27,102 @@ function Bg({ id: name, from, to }) {
   );
 }
 
+
+// Shared pieces for the bold game-show look: twinkling sparkles, gold coins
+// and big outlined headline text (dollar wins read better than multiples).
+function Sparkles({ at, color = "#FEF9C3" }) {
+  return at.map(([x, y, r = 6], i) => (
+    <path
+      key={`${x}-${y}`}
+      d={`M${x} ${y - r} Q${x} ${y} ${x + r} ${y} Q${x} ${y} ${x} ${y + r} Q${x} ${y} ${x - r} ${y} Q${x} ${y} ${x} ${y - r}Z`}
+      fill={color}
+      className="qw-twinkle"
+      style={{ animationDelay: `${(i * 0.37) % 1.8}s` }}
+    />
+  ));
+}
+
+function Coin({ x, y, r = 12, delay = 0 }) {
+  return (
+    <g className="qw-pulse" style={{ animationDelay: `${delay}s` }}>
+      <circle cx={x} cy={y} r={r} fill="#FACC15" stroke="#92400E" strokeWidth="3" />
+      <text x={x} y={y + r * 0.4} textAnchor="middle" fontSize={r * 1.1} fontWeight="900" fill="#92400E">$</text>
+    </g>
+  );
+}
+
+function Big({ x = 100, y, size, children, fill = "#fff", stroke = "#0A0A0A", sw = 4, ...rest }) {
+  return (
+    <text x={x} y={y} textAnchor="middle" fontSize={size} fontWeight="900" fill={fill} stroke={stroke} strokeWidth={sw} strokeLinejoin="round" paintOrder="stroke" letterSpacing="-1" {...rest}>
+      {children}
+    </text>
+  );
+}
+
+// Sky: sun rays, clouds, the jet and a skydiver.
 function HopOff() {
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full">
-      <Bg id="g-hop" from="#007DFE" to="#00C2FF" />
-      {/* City skyline */}
-      <g fill="#ffffff" opacity="0.18">
-        <rect x="10" y="70" width="22" height="70" />
-        <rect x="36" y="50" width="18" height="90" />
-        <rect x="58" y="80" width="26" height="60" />
-        <rect x="120" y="60" width="20" height="80" />
-        <rect x="144" y="40" width="24" height="100" />
-        <rect x="172" y="75" width="20" height="65" />
-      </g>
-      {/* Road */}
-      <rect x="0" y="140" width="200" height="40" fill="#0A0A0A" opacity="0.85" />
-      <line x1="0" y1="160" x2="200" y2="160" stroke="#fff" strokeWidth="3" strokeDasharray="14 6" className="qw-road" />
-      {/* Checkpoint */}
-      <g transform="translate(168 112)">
-        <rect x="0" y="0" width="4" height="30" fill="#fff" />
-        <rect x="-26" y="2" width="30" height="7" rx="2" fill="#DC2626" />
-        <rect x="-20" y="2" width="6" height="7" fill="#fff" />
-        <rect x="-8" y="2" width="6" height="7" fill="#fff" />
-      </g>
-      {/* Jet */}
-      <g className="qw-float">
-        <rect x="46" y="82" width="96" height="20" rx="10" fill="#FFFFFF" />
-        <polygon points="140,82 160,92 140,102" fill="#FFFFFF" />
-        <polygon points="52,84 38,58 52,58 70,84" fill="#0A0A0A" />
-        <polygon points="86,96 64,126 80,126 110,96" fill="#E4E4E7" />
-        {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-          <circle key={i} cx={62 + i * 10} cy="90" r="2.6" fill="#0A0A0A" />
+      <Bg id="g-hop" from="#0369A1" to="#38BDF8" />
+      <g className="qw-spin" style={{ animationDuration: "24s" }} opacity="0.25">
+        {Array.from({ length: 10 }, (_, i) => (
+          <polygon key={i} points="160,36 154,-80 166,-80" fill="#FEF08A" transform={`rotate(${i * 36} 160 36)`} />
         ))}
-        <rect x="46" y="95" width="94" height="3" fill="#007DFE" />
       </g>
-      {/* Parachute */}
+      <circle cx="160" cy="36" r="20" fill="#FDE047" />
+      <g fill="#fff" opacity="0.85">
+        <ellipse cx="34" cy="150" rx="40" ry="14" />
+        <ellipse cx="70" cy="160" rx="34" ry="12" />
+        <ellipse cx="170" cy="164" rx="44" ry="14" />
+      </g>
+      <g className="qw-float">
+        <rect x="40" y="96" width="96" height="20" rx="10" fill="#FFFFFF" stroke="#0A0A0A" strokeWidth="2.5" />
+        <polygon points="134,96 156,106 134,116" fill="#FFFFFF" stroke="#0A0A0A" strokeWidth="2.5" strokeLinejoin="round" />
+        <polygon points="46,98 32,72 46,72 64,98" fill="#DC2626" stroke="#0A0A0A" strokeWidth="2.5" strokeLinejoin="round" />
+        <polygon points="80,110 58,138 74,138 104,110" fill="#E4E4E7" stroke="#0A0A0A" strokeWidth="2.5" strokeLinejoin="round" />
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <circle key={i} cx={62 + i * 11} cy="104" r="2.6" fill="#0369A1" />
+        ))}
+      </g>
       <g className="qw-bob">
-        <path d="M150 120 a16 16 0 0 1 32 0 z" fill="#FACC15" />
-        <line x1="150" y1="120" x2="166" y2="140" stroke="#fff" strokeWidth="1.2" />
-        <line x1="182" y1="120" x2="166" y2="140" stroke="#fff" strokeWidth="1.2" />
-        <circle cx="166" cy="142" r="3.5" fill="#0A0A0A" />
+        <path d="M150 112 a16 16 0 0 1 32 0 z" fill="#F97316" stroke="#0A0A0A" strokeWidth="2" />
+        <line x1="150" y1="112" x2="166" y2="132" stroke="#0A0A0A" strokeWidth="1.2" />
+        <line x1="182" y1="112" x2="166" y2="132" stroke="#0A0A0A" strokeWidth="1.2" />
+        <circle cx="166" cy="134" r="3.5" fill="#0A0A0A" />
       </g>
-      <text x="100" y="82" fontSize="26" textAnchor="middle" fontWeight="800" fill="#fff" className="qw-pulse">
-        GET OFF!
-      </text>
+      <Sparkles at={[[24, 30], [110, 22, 5], [96, 150, 5]]} />
+      <Big y="70" size="30" className="qw-pulse">HOP OFF!</Big>
+      <Big y="190" size="13" sw="3" className="qw-tagline">FLY FURTHER · WIN MORE</Big>
     </svg>
   );
 }
 
+// Split screen: a packed side A against a few on side B, and B gets the crown.
 function Underdog() {
+  const crowd = [];
+  for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) crowd.push([22 + c * 18 + (r % 2) * 6, 112 + r * 16]);
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full">
-      <Bg id="g-dog" from="#7C3AED" to="#EC4899" />
-      <rect x="0" y="0" width="100" height="200" fill="#0A0A0A" opacity="0.18" />
-      <g className="qw-float">
-        <circle cx="52" cy="92" r="34" fill="#fff" opacity="0.95" />
-        <text x="52" y="104" textAnchor="middle" fontSize="34" fontWeight="800" fill="#7C3AED">A</text>
-      </g>
-      <g className="qw-float" style={{ animationDelay: "1.5s" }}>
-        <circle cx="148" cy="92" r="34" fill="#fff" opacity="0.95" />
-        <text x="148" y="104" textAnchor="middle" fontSize="34" fontWeight="800" fill="#EC4899">B</text>
-      </g>
-      <g className="qw-pulse">
-        <circle cx="100" cy="92" r="20" fill="#0A0A0A" />
-        <text x="100" y="99" textAnchor="middle" fontSize="18" fontWeight="800" fill="#fff">VS</text>
-      </g>
-      {/* The crowd bar: the smaller side wins */}
-      <rect x="24" y="150" width="152" height="14" rx="7" fill="#fff" opacity="0.3" />
-      <rect x="24" y="150" width="96" height="14" rx="7" fill="#fff" className="qw-tug" />
-      <text x="100" y="186" textAnchor="middle" fontSize="13" fontWeight="700" fill="#fff">SMALLER SIDE WINS</text>
+      <Bg id="g-dog" from="#6D28D9" to="#DB2777" />
+      <polygon points="0,0 118,0 82,200 0,200" fill="#0A0A0A" opacity="0.3" />
+      <polygon points="114,0 122,0 86,200 78,200" fill="#FDE047" />
+      {crowd.map(([x, y], i) => (
+        <g key={i} fill="#C4B5FD" opacity="0.85">
+          <circle cx={x} cy={y} r="5" />
+          <rect x={x - 6} y={y + 5} width="12" height="8" rx="4" />
+        </g>
+      ))}
+      {[[134, 140], [160, 134]].map(([x, y]) => (
+        <g key={x} fill="#fff" stroke="#0A0A0A" strokeWidth="2">
+          <circle cx={x} cy={y} r="9" />
+          <rect x={x - 11} y={y + 9} width="22" height="16" rx="7" />
+        </g>
+      ))}
+      <path d="M134 108 l6 -14 l7 9 l7 -12 l7 12 l7 -9 l6 14 z" fill="#FDE047" stroke="#0A0A0A" strokeWidth="2.5" strokeLinejoin="round" className="qw-bob" />
+      <Big x="50" y="80" size="40" fill="#C4B5FD">A</Big>
+      <Big x="152" y="80" size="40">B</Big>
+      <Sparkles at={[[118, 96, 5], [184, 100, 5], [176, 160, 4]]} />
+      <Big y="34" size="17" sw="3" className="qw-tagline">SMALLER SIDE WINS</Big>
     </svg>
   );
 }
@@ -126,39 +153,65 @@ function GoldenDrop() {
   );
 }
 
+// Spotlight on one door: the knockout, in deep red.
 function LastStanding() {
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full">
-      <Bg id="g-last" from="#B91C1C" to="#F97316" />
-      {[38, 102].map((x, i) => (
+      <Bg id="g-last" from="#450A0A" to="#DC2626" />
+      <g className="qw-sweep">
+        <polygon points="96,-10 104,-10 150,200 50,200" fill="#FEF3C7" opacity="0.22" />
+      </g>
+      <ellipse cx="100" cy="176" rx="70" ry="10" fill="#0A0A0A" opacity="0.35" />
+      {[44, 104].map((x, i) => (
         <g key={x}>
-          <rect x={x} y="50" width="60" height="100" rx="8" fill="#0A0A0A" opacity="0.5" />
-          <rect x={x + 4} y="54" width="52" height="92" rx="6" fill="#fff" className={i === 0 ? "qw-door" : ""} />
-          <circle cx={x + 48} cy="102" r="3.5" fill="#0A0A0A" />
+          <rect x={x} y="76" width="52" height="96" rx="6" fill="#0A0A0A" stroke="#FACC15" strokeWidth="3" />
+          <rect x={x + 4} y="80" width="44" height="88" rx="4" fill={i ? "#FEF3C7" : "#fff"} className={i === 0 ? "qw-door" : ""} />
+          <circle cx={x + 40} cy="124" r="3.5" fill="#0A0A0A" />
         </g>
       ))}
+      <Sparkles at={[[22, 90], [180, 84], [30, 160, 5], [172, 150, 5]]} />
+      <Big y="64" size="38" fill="#FDE047" className="qw-pulse">$28.90</Big>
+      <Big y="194" size="13" sw="3" className="qw-tagline">32 PLAYERS · LAST ONE WINS</Big>
     </svg>
   );
 }
 
+// Stadium at night: floodlights, the goal, the ball and the cup.
 function SpotKick() {
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full">
-      <Bg id="g-kick" from="#15803D" to="#4ADE80" />
-      <g stroke="#fff" strokeWidth="2" opacity="0.35">
-        {[0, 1, 2, 3, 4, 5].map((i) => (
-          <line key={`v${i}`} x1={60 + i * 16} y1="40" x2={60 + i * 16} y2="90" />
+      <Bg id="g-kick" from="#022C22" to="#059669" />
+      {[[16, 0], [184, 0]].map(([x], i) => (
+        <g key={x} className="qw-sweep" style={{ animationDelay: `${i * 2}s` }}>
+          <polygon points={`${x - 4},0 ${x + 4},0 ${x + (i ? -60 : 80)},150 ${x + (i ? -120 : 20)},150`} fill="#ECFCCB" opacity="0.16" />
+        </g>
+      ))}
+      {[0, 1, 2, 3].map((i) => (
+        <rect key={i} x={i * 50} y="140" width="25" height="60" fill="#fff" opacity="0.06" />
+      ))}
+      <g stroke="#fff" strokeWidth="1.5" opacity="0.4">
+        {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+          <line key={`v${i}`} x1={50 + i * 14} y1="76" x2={50 + i * 14} y2="126" />
         ))}
         {[0, 1, 2].map((i) => (
-          <line key={`h${i}`} x1="60" y1={52 + i * 14} x2="140" y2={52 + i * 14} />
+          <line key={`h${i}`} x1="46" y1={88 + i * 14} x2="138" y2={88 + i * 14} />
         ))}
       </g>
-      <path d="M56 92 V36 H144 V92" fill="none" stroke="#fff" strokeWidth="5" strokeLinejoin="round" />
-      <rect x="0" y="150" width="200" height="50" fill="#0A0A0A" opacity="0.15" />
+      <path d="M44 128 V72 H140 V128" fill="none" stroke="#fff" strokeWidth="6" strokeLinejoin="round" />
       <g className="qw-kick">
-        <circle cx="96" cy="148" r="13" fill="#fff" />
-        <path d="M96 140 l6 4 -2 7 h-8 l-2 -7 z" fill="#0A0A0A" />
+        <circle cx="86" cy="160" r="12" fill="#fff" stroke="#0A0A0A" strokeWidth="2" />
+        <path d="M86 152 l6 4 -2 7 h-8 l-2 -7 z" fill="#0A0A0A" />
       </g>
+      <g transform="translate(164 104)">
+        <g className="qw-bob">
+          <path d="M-14 -22 h28 v8 a14 14 0 0 1 -28 0 z" fill="#FACC15" stroke="#0A0A0A" strokeWidth="2.5" />
+          <rect x="-4" y="0" width="8" height="10" fill="#FACC15" stroke="#0A0A0A" strokeWidth="2" />
+          <rect x="-11" y="10" width="22" height="6" rx="2" fill="#92400E" stroke="#0A0A0A" strokeWidth="2" />
+        </g>
+      </g>
+      <Sparkles at={[[24, 70], [176, 60], [150, 110, 5]]} />
+      <Big y="62" size="36" fill="#FDE047" className="qw-pulse">$13.04</Big>
+      <Big y="194" size="13" sw="3" className="qw-tagline">WIN THE CUP FROM $1</Big>
     </svg>
   );
 }
@@ -249,62 +302,78 @@ function Die({ x, y, n, fill = "#fff", pip = "#0A0A0A", className = "", style })
   );
 }
 
+// Neon casino: glowing rings, gold dollars and tumbling dice.
 function Seven() {
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full">
-      <Bg id="g-seven" from="#FF2D55" to="#FF9500" />
-      <text x="100" y="92" textAnchor="middle" fontSize="88" fontWeight="900" fill="#fff" className="qw-pulse" style={{ letterSpacing: "-6px" }}>
-        7x
-      </text>
-      <Die x={52} y={150} n={6} className="qw-spin" style={{ animationDuration: "3s" }} />
-      <Die x={100} y={146} n={5} className="qw-float" />
-      <Die x={148} y={150} n={6} className="qw-spin" style={{ animationDuration: "4s", animationDirection: "reverse" }} />
-      {[18, 182].map((x) => (
-        <circle key={x} cx={x} cy="30" r="5" fill="#FACC15" className="qw-glow" />
+      <Bg id="g-seven" from="#9F1239" to="#F97316" />
+      {[78, 62, 46].map((r, i) => (
+        <circle key={r} cx="100" cy="74" r={r} fill="none" stroke={["#F0ABFC", "#FDE047", "#67E8F9"][i]} strokeWidth="2.5" strokeDasharray="2 7" strokeLinecap="round" className="qw-spin" style={{ animationDuration: `${10 + i * 4}s`, animationDirection: i % 2 ? "reverse" : "normal" }} />
       ))}
+      <Big y="90" size="46" fill="#FDE047" className="qw-pulse">$7.30</Big>
+      <Big y="118" size="12" sw="3" className="qw-tagline">FROM $1 · BEAT 7 PLAYERS</Big>
+      <Die x={52} y={158} n={6} className="qw-spin" style={{ animationDuration: "3s" }} />
+      <Die x={100} y={154} n={5} className="qw-float" />
+      <Die x={148} y={158} n={6} className="qw-spin" style={{ animationDuration: "4s", animationDirection: "reverse" }} />
+      <Coin x={18} y={120} r={10} />
+      <Coin x={182} y={116} r={10} delay={0.6} />
+      <Sparkles at={[[20, 26], [180, 30], [34, 186, 5], [168, 190, 5]]} />
     </svg>
   );
 }
 
+// Fight night: a lightning split, two fists and the prize.
 function Double() {
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full">
-      <Bg id="g-x2" from="#00C2FF" to="#7C3AED" />
-      <text x="100" y="76" textAnchor="middle" fontSize="64" fontWeight="900" fill="#fff" className="qw-pulse" style={{ letterSpacing: "-3px" }}>
-        x2
-      </text>
+      <Bg id="g-x2" from="#0E7490" to="#4C1D95" />
+      <polygon points="0,0 112,0 92,96 116,96 80,200 0,200" fill="#0A0A0A" opacity="0.28" />
+      <polyline points="112,0 92,96 116,96 80,200" fill="none" stroke="#FDE047" strokeWidth="5" strokeLinejoin="round" className="qw-glow" />
       <g className="qw-tug">
-        <text x="56" y="150" textAnchor="middle" fontSize="54">✊</text>
+        <text x="50" y="150" textAnchor="middle" fontSize="54">✊</text>
       </g>
       <g className="qw-tug" style={{ animationDelay: "0.6s" }}>
-        <text x="144" y="150" textAnchor="middle" fontSize="54" transform="scale(-1 1) translate(-288 0)">✌️</text>
+        <text x="150" y="150" textAnchor="middle" fontSize="54" transform="scale(-1 1) translate(-300 0)">✌️</text>
       </g>
-      <circle cx="100" cy="132" r="16" fill="#0A0A0A" />
-      <text x="100" y="138" textAnchor="middle" fontSize="14" fontWeight="800" fill="#fff">VS</text>
-      <text x="100" y="186" textAnchor="middle" fontSize="12" fontWeight="800" fill="#fff" opacity="0.9">FIRST TO 2 WINS ALL</text>
+      <circle cx="100" cy="128" r="16" fill="#0A0A0A" stroke="#FDE047" strokeWidth="2.5" />
+      <text x="100" y="134" textAnchor="middle" fontSize="14" fontWeight="900" fill="#FDE047">VS</text>
+      <Sparkles at={[[22, 24], [178, 70], [170, 180, 5]]} />
+      <Big y="72" size="44" fill="#67E8F9" className="qw-pulse">$1.90</Big>
+      <Big y="190" size="12" sw="3" className="qw-tagline">BEAT ONE PLAYER · $1 IN</Big>
     </svg>
   );
 }
 
+// Game show: a ring of marquee bulbs, the wheel on a gold rim, confetti.
 function BigWheel() {
   const colors = ["#EF4444", "#06B6D4", "#F59E0B", "#F97316", "#22C55E", "#EAB308", "#8B5CF6", "#DC2626", "#6366F1", "#0EA5E9", "#EC4899", "#14B8A6"];
   const slice = (Math.PI * 2) / colors.length;
-  const r = 70;
+  const r = 48;
   return (
     <svg viewBox="0 0 200 200" className="w-full h-full">
-      <Bg id="g-wheel" from="#4C1D95" to="#DB2777" />
-      <g transform="translate(100 108)">
-        <circle r={r + 8} fill="#1F1147" stroke="#FACC15" strokeWidth="2" />
+      <Bg id="g-wheel" from="#3B0764" to="#C026D3" />
+      {Array.from({ length: 24 }, (_, i) => {
+        const a = (i / 24) * Math.PI * 2;
+        return <circle key={i} cx={100 + Math.cos(a) * 92} cy={112 + Math.sin(a) * 92} r="3.5" fill="#FDE047" className={i % 2 ? "qw-blink" : ""} style={{ animationDelay: "0.45s" }} />;
+      })}
+      {[[20, 40, "#22D3EE"], [182, 52, "#F472B6"], [26, 178, "#FDE047"], [176, 170, "#4ADE80"]].map(([x, y, c], i) => (
+        <g key={x} transform={`rotate(${i * 40 + 20} ${x} ${y})`}>
+          <rect x={x} y={y} width="7" height="11" rx="1.5" fill={c} className="qw-float" style={{ animationDelay: `${i * 0.5}s` }} />
+        </g>
+      ))}
+      <g transform="translate(100 128)">
+        <circle r={r + 9} fill="#FACC15" stroke="#0A0A0A" strokeWidth="3" />
         <g className="qw-spin" style={{ animationDuration: "6s" }}>
           {colors.map((c, i) => {
             const a0 = i * slice;
             const a1 = a0 + slice;
             return <path key={c} d={`M0 0 L${Math.cos(a0) * r} ${Math.sin(a0) * r} A${r} ${r} 0 0 1 ${Math.cos(a1) * r} ${Math.sin(a1) * r} Z`} fill={c} stroke="#fff" strokeWidth="1" />;
           })}
-          <circle r="14" fill="#0A0A0A" stroke="#FACC15" strokeWidth="3" />
+          <circle r="12" fill="#0A0A0A" stroke="#FACC15" strokeWidth="3" />
         </g>
-        <polygon points="-10,-86 10,-86 0,-66" fill="#FACC15" stroke="#0A0A0A" strokeWidth="2" />
+        <polygon points="-10,-64 10,-64 0,-46" fill="#fff" stroke="#0A0A0A" strokeWidth="2.5" strokeLinejoin="round" />
       </g>
+      <Big y="62" size="34" fill="#FDE047" className="qw-pulse">$50+</Big>
     </svg>
   );
 }
@@ -335,7 +404,7 @@ function Mega() {
         </g>
       ))}
       <text x="100" y="138" textAnchor="middle" fontSize="24" fontWeight="900" fill="#fff" stroke="#0A0A0A" strokeWidth="1">JACKPOT</text>
-      <text x="100" y="190" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff" opacity="0.95">$1 IN · LAST ONE TAKES ALL</text>
+      <text x="100" y="190" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff" opacity="0.95" className="qw-tagline">$1 IN · LAST ONE TAKES ALL</text>
     </svg>
   );
 }
@@ -375,7 +444,13 @@ function RaceArt({ id }) {
           <rect key={k} x={172 + (k % 2) * 6} y={k * 6} width="6" height="6" fill={(k + Math.floor(k / 2)) % 2 ? "#fff" : "#0A0A0A"} />
         ))}
       </g>
-      <text x="100" y="186" textAnchor="middle" fontSize="13" fontWeight="900" fill="#fff" letterSpacing="1">{race.name.toUpperCase()}</text>
+      <g className="qw-streak" opacity="0.5">
+        {[[30, 20], [90, 12], [140, 26]].map(([x, y]) => (
+          <rect key={x} x={x} y={y} width="40" height="2" rx="1" fill="#fff" />
+        ))}
+      </g>
+      <Big y="30" size="26" fill="#FDE047" className="qw-tagline">{`${race.max} FROM $1`}</Big>
+      <Big y="190" size="14" sw="3" letterSpacing="1" className="qw-tagline">{race.name.toUpperCase()}</Big>
     </svg>
   );
 }

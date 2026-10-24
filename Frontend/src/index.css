@@ -132,8 +132,19 @@ body {
   background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
   animation: qw-shine 2.8s ease-in-out infinite;
 }
+@keyframes qw-twinkle { 0%, 100% { transform: scale(0.4); opacity: 0.3; } 50% { transform: scale(1); opacity: 1; } }
+@keyframes qw-sweep { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(12deg); } }
+@keyframes qw-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.25; } }
+@keyframes qw-streak { from { transform: translateX(60px); } to { transform: translateX(-60px); } }
+.qw-twinkle { animation: qw-twinkle 1.8s ease-in-out infinite; }
+.qw-blink { animation: qw-blink 0.9s steps(1) infinite; }
+.qw-streak { animation: qw-streak 0.9s linear infinite; }
+svg g.qw-sweep { animation: qw-sweep 4s ease-in-out infinite; transform-origin: top center; }
 @keyframes qw-roll { 0% { transform: rotate(-200deg) scale(0.4); opacity: 0; } 70% { transform: rotate(15deg) scale(1.1); opacity: 1; } 100% { transform: rotate(0) scale(1); } }
 .qw-roll { animation: qw-roll 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 
 /* Animated SVG parts scale and spin around their own centre. */
 svg [class*="qw-"] { transform-box: fill-box; transform-origin: center; }
+
+/* Lobby tiles carry their own win badge, so the art drops its small print. */
+.tile-art .qw-tagline { display: none; }

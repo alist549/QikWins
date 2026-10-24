@@ -13,7 +13,7 @@ function GameRail() {
           to={g.path}
           className={({ isActive }) => `flex items-center gap-3 rounded-2xl p-1.5 pr-3 transition ${isActive ? "bg-surface ring-2 ring-[#FACC15]" : "hover:bg-surface"}`}
         >
-          <span className="w-11 h-11 rounded-xl overflow-hidden shrink-0">
+          <span className="tile-art w-11 h-11 rounded-xl overflow-hidden shrink-0">
             <GameArt game={g.id} />
           </span>
           <span className="min-w-0 flex-1">

@@ -6,7 +6,7 @@ import { money } from "../lib/money";
 function GameTile({ game, live }) {
   const body = (
     <>
-      <div className="relative aspect-square rounded-[22px] overflow-hidden shadow-float qw-shine group-hover:scale-[1.03] transition-transform duration-300">
+      <div className="tile-art relative aspect-square rounded-[22px] overflow-hidden shadow-float qw-shine group-hover:scale-[1.03] transition-transform duration-300">
         <GameArt game={game.id} />
         {game.live ? (
           <span className="absolute top-2.5 left-2.5 h-6 px-2 rounded-full bg-black/70 text-white text-[11px] font-bold inline-flex items-center gap-1.5 backdrop-blur">
@@ -21,7 +21,7 @@ function GameTile({ game, live }) {
         )}
         {game.max && (
           <span className="absolute bottom-2 left-2 px-2.5 py-1 rounded-2xl bg-black/80 backdrop-blur flex flex-col leading-none">
-            <span className="text-[9px] font-black tracking-wider text-white/80">WIN UP TO</span>
+            <span className="text-[9px] font-black tracking-wider text-white/80">{game.max.endsWith("+") ? "$1 CAN WIN" : "$1 WINS UP TO"}</span>
             <span className="text-xl font-black tracking-tight bg-gradient-to-b from-[#FEF9C3] to-[#F59E0B] bg-clip-text text-transparent">{game.max}</span>
           </span>
         )}
