@@ -1,0 +1,35 @@
+# Local demo: MongoDB + game server + website.
+#   docker compose up --build
+# Then open http://localhost:5173
+services:
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: ./Backend
+    depends_on:
+      - mongo
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      ENVIRONMENT: development
+      MONGODB_URL: mongodb://mongo:27017/qikwins
+      JWT_SECRET: change-me-for-anything-public
+
+  frontend:
+    build:
+      context: ./Frontend
+      args:
+        VITE_SERVER_URL: http://localhost:3000
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  mongo-data:

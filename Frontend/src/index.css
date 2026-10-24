@@ -1,0 +1,112 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Theme tokens as RGB triplets (see tailwind.config.js), the same as
+   QikDrive: black and white, with QikDrive blue for the brand and accents. */
+:root {
+  --bg: 255 255 255;
+  --surface: 244 244 245;
+  --raised: 255 255 255;
+  --line: 228 228 231;
+  --fg: 10 10 10;
+  --muted: 113 113 122;
+  --primary: 10 10 10;
+  --on-primary: 255 255 255;
+  --brand: 0 125 254;
+  --danger: 220 38 38;
+  color-scheme: light;
+}
+
+:root.dark,
+.dark {
+  --bg: 18 18 18;
+  --surface: 30 30 30;
+  --raised: 30 30 30;
+  --line: 44 44 46;
+  --fg: 250 250 250;
+  --muted: 161 161 170;
+  --primary: 250 250 250;
+  --on-primary: 10 10 10;
+  --brand: 0 144 253;
+  --danger: 248 113 113;
+  color-scheme: dark;
+}
+
+* {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: rgb(var(--bg));
+  color: rgb(var(--fg));
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background-color: rgb(var(--brand) / 0.25);
+}
+
+/* Numbers that tick (pools, counters, balances) keep their width. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---- Game motion: lobby tiles, banners and live rounds ---- */
+@keyframes qw-road { to { stroke-dashoffset: -40; } }
+@keyframes qw-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes qw-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes qw-drop { 0% { transform: translateY(-60px); opacity: 0; } 15% { opacity: 1; } 70% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(0) scale(1.6); opacity: 0; } }
+@keyframes qw-ripple { 0%, 65% { transform: scale(0.2); opacity: 0; } 75% { opacity: 0.8; } 100% { transform: scale(1.4); opacity: 0; } }
+@keyframes qw-spin { to { transform: rotate(360deg); } }
+@keyframes qw-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+@keyframes qw-glow { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
+@keyframes qw-tug { 0%, 100% { transform: translateX(-6px); } 50% { transform: translateX(6px); } }
+@keyframes qw-kick { 0% { transform: translate(0, 0) scale(1); } 60% { transform: translate(52px, -58px) scale(0.75); } 100% { transform: translate(52px, -58px) scale(0.75); opacity: 0; } }
+@keyframes qw-door { 0%, 40% { transform: scaleX(1); } 60%, 100% { transform: scaleX(0.15); } }
+@keyframes qw-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes qw-shake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+@keyframes qw-confetti { 0% { transform: translate(0, 0) rotate(0); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); opacity: 0; } }
+@keyframes qw-rise { 0% { transform: translateY(10px); opacity: 0; } 20% { transform: translateY(0); opacity: 1; } 80% { opacity: 1; } 100% { transform: translateY(-30px); opacity: 0; } }
+@keyframes qw-shine { from { transform: translateX(-120%) skewX(-20deg); } to { transform: translateX(260%) skewX(-20deg); } }
+@keyframes qw-count { from { transform: scale(1.35); } to { transform: scale(1); } }
+
+.qw-road { animation: qw-road 0.6s linear infinite; }
+.qw-bob { animation: qw-bob 0.5s ease-in-out infinite; transform-box: fill-box; }
+.qw-float { animation: qw-float 3s ease-in-out infinite; transform-box: fill-box; }
+.qw-drop { animation: qw-drop 2.4s cubic-bezier(0.5, 0, 0.8, 0.6) infinite; transform-box: fill-box; transform-origin: center; }
+.qw-ripple { animation: qw-ripple 2.4s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+.qw-spin { animation: qw-spin 6s linear infinite; transform-box: fill-box; transform-origin: center; }
+.qw-pulse { animation: qw-pulse 1.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.qw-glow { animation: qw-glow 1.6s ease-in-out infinite; }
+.qw-tug { animation: qw-tug 1.2s ease-in-out infinite; transform-box: fill-box; }
+.qw-kick { animation: qw-kick 1.8s cubic-bezier(0.2, 0.7, 0.4, 1) infinite; transform-box: fill-box; }
+.qw-door { animation: qw-door 2.6s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: left center; }
+.qw-marquee { animation: qw-marquee 30s linear infinite; }
+.qw-shake { animation: qw-shake 0.5s ease-in-out 2; }
+.qw-rise { animation: qw-rise 1.6s ease-out forwards; }
+.qw-count { animation: qw-count 0.35s ease-out; }
+.qw-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+  animation: qw-shine 2.8s ease-in-out infinite;
+}
+@keyframes qw-roll { 0% { transform: rotate(-200deg) scale(0.4); opacity: 0; } 70% { transform: rotate(15deg) scale(1.1); opacity: 1; } 100% { transform: rotate(0) scale(1); } }
+.qw-roll { animation: qw-roll 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+
+/* Animated SVG parts scale and spin around their own centre. */
+svg [class*="qw-"] { transform-box: fill-box; transform-origin: center; }

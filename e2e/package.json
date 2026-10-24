@@ -1,0 +1,11 @@
+{
+  "name": "qikwins-e2e",
+  "private": true,
+  "description": "Plays QikWins in Chromium against a running server and website, with a few bot players, and saves screenshots.",
+  "scripts": {
+    "play": "node play.js"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}
