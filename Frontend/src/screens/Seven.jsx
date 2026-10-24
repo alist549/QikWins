@@ -7,6 +7,7 @@ import StakeChips from "../components/StakeChips";
 import GameArt from "../components/GameArt";
 import WinBurst from "../components/WinBurst";
 import Die from "../components/Dice";
+import Dice3D from "../components/Dice3D";
 import { useSession } from "../contexts/SessionContext";
 import { useCountdown } from "../lib/useGame";
 import { usePersonal } from "../lib/usePersonal";
@@ -146,10 +147,8 @@ function Seven() {
                 </span>
               )}
             </div>
-            <div className="mt-4 flex justify-center gap-3">
-              {me.dice.map((n, i) => (
-                <Die key={i} n={n} size={76} delay={i * 0.08} rollKey={`${me.rerolled}-${i}`} />
-              ))}
+            <div className="mt-4">
+              <Dice3D dice={me.dice} rollKey={`${table.id}-${me.rerolled}`} label={`Your dice: ${me.dice.join(", ")}`} />
             </div>
             <div className="mt-3 text-center">
               <span className="text-5xl font-extrabold tabular">{me.total}</span>
