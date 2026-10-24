@@ -1,4 +1,5 @@
 require("dotenv").config();
+const path = require("path");
 const { createServer } = require("http");
 const { createApp } = require("./app");
 const { attachSocket } = require("./socket");
@@ -33,7 +34,7 @@ async function main() {
   const seven = createSevenX({ store, publish: live.broadcast, notify: live.notify });
   const standing = createLastStanding({ store, publish: live.broadcast, notify: live.notify });
 
-  server.on("request", createApp({ store, hopOff: games["hop-off"], underdog: games.underdog, double, seven, wheel: games["big-wheel"], standing }));
+  server.on("request", createApp({ store, hopOff: games["hop-off"], underdog: games.underdog, double, seven, wheel: games["big-wheel"], standing, webDir: process.env.WEB_DIR && path.resolve(__dirname, process.env.WEB_DIR) }));
   [...Object.values(games), double, seven, standing].forEach((g) => g.start());
   server.listen(PORT, () => console.log(`QikWins server on port ${PORT} (${store.kind} store, demo mode)`));
 }

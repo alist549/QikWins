@@ -75,6 +75,12 @@ Open http://localhost:5173. With MongoDB, leave out `STORE=memory` and set `MONG
 
 Docker: `docker compose up --build`, then open http://localhost:5173.
 
+## Put it online (Render, free)
+
+`render.yaml` is a Render Blueprint. In Render, choose **New > Blueprint**, pick this repository, and click **Apply**. One free web service builds the website, runs the game server and serves both from one address. Free instances sleep after 15 minutes without visitors and take about a minute to wake, and with `STORE=memory` a restart resets the demo. For data that lasts, add a free MongoDB Atlas cluster, set `MONGODB_URL` and remove `STORE`.
+
+To run it the same way locally: build the website with `VITE_SERVER_URL=/ npm run build`, then start the server with `WEB_DIR=../Frontend/dist`.
+
 ## Tests
 
 - `Backend`: `npm test` covers the pool maths (including the worked examples from the game design doc), provably fair draws, both game engines and the API. With `MONGODB_URL` set it also tests the MongoDB store.

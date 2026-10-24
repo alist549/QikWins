@@ -1,3 +1,4 @@
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
@@ -11,7 +12,9 @@ const fair = require("./services/fair");
 
 // The HTTP API. Players act through these routes; live round updates go
 // out over Socket.IO (socket.js).
-function createApp({ store, hopOff, underdog, double, seven, wheel, standing }) {
+// With `webDir` (the built website), the same server also serves the site,
+// so one free web service runs everything (see render.yaml).
+function createApp({ store, hopOff, underdog, double, seven, wheel, standing, webDir }) {
   const app = express();
   if (process.env.ENVIRONMENT !== "test") app.use(morgan("dev"));
   app.use(cors());
@@ -36,7 +39,10 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, standing }) 
       }
     });
 
-  app.get("/", (req, res) => res.json({ name: "QikWins", demo: true, store: store.kind }));
+  const status = (req, res) => res.json({ name: "QikWins", demo: true, store: store.kind });
+  app.get("/health", status);
+  if (webDir) app.use(express.static(webDir, { index: false, maxAge: "1h" }));
+  else app.get("/", status);
 
   // Everything the app needs to explain the rules and the money.
   app.get("/games/config", (req, res) =>
@@ -172,6 +178,11 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, standing }) 
     const check = fair.verifyStop({ seed, hash, game, roundId, stops, stop: Number(req.query.stop) });
     res.json(check);
   });
+
+  // The website's own pages all load index.html; the app routes from there.
+  if (webDir) {
+    app.get(/^\/(why|sign-in|play(\/[a-z-]+)?|fair|play-safe)?\/?$/, (req, res) => res.sendFile(path.join(webDir, "index.html")));
+  }
 
   app.use((err, req, res, next) => {
     console.error(err);
