@@ -20,6 +20,7 @@
     "react-router-dom": "^7.0.2",
     "socket.io-client": "^4.8.1",
     "spin-wheel": "^5.0.2",
+    "three": "^0.143.0",
     "tone": "^15.1.22"
   },
   "devDependencies": {

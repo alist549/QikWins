@@ -1,8 +1,11 @@
+import { useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 
 // The goal with its 3 directions (left, centre and right), a keeper and a
 // ball. Before a kick the directions are buttons; on the reveal the keeper
-// dives to `dive` and the ball flies to `aim`.
+// dives to `dive` and the ball flies to `aim`. The stadium is 3D
+// (scenes/penalty3d.js); the flat drawing shows while it loads, or if the
+// device has no WebGL.
 export const SPOT_NAMES = ["Left", "Centre", "Right"];
 
 const W = 320;
@@ -33,9 +36,44 @@ function Goal({ onPick, picked, disabled, reveal, kickKey, role }) {
   const diveTo = showReveal ? spotCenter(reveal.dive) : KEEPER_HOME;
   const diveDx = diveTo.x - KEEPER_HOME.x;
   const diveDy = diveTo.y - KEEPER_HOME.y + (reveal?.dive === 1 ? -6 : 8);
+
+  const host = useRef(null);
+  const stage = useRef(null);
+  const [mouth, setMouth] = useState(null);
+  useEffect(() => {
+    let gone = false;
+    import("../scenes/penalty3d")
+      .then(({ penaltyScene }) => {
+        if (gone) return;
+        stage.current = penaltyScene(host.current);
+        setMouth(stage.current.mouth());
+      })
+      .catch((e) => console.error("Penalties 3D:", e));
+    return () => {
+      gone = true;
+      stage.current?.destroy();
+      stage.current = null;
+    };
+  }, []);
+  useEffect(() => {
+    stage.current?.setRole(role);
+  }, [role, mouth]);
+  const aim = reveal?.aim;
+  const dive = reveal?.dive;
+  const scored = reveal?.goal;
+  useEffect(() => {
+    if (!stage.current) return;
+    if (showReveal) stage.current.play({ aim, dive, goal: scored });
+    else stage.current.reset();
+  }, [showReveal, aim, dive, scored, kickKey, mouth]);
+
+  const box = mouth
+    ? { left: `${mouth.left * 100}%`, top: `${mouth.top * 100}%`, width: `${(mouth.right - mouth.left) * 100}%`, height: `${(mouth.bottom - mouth.top) * 100}%` }
+    : { left: `${(GOAL.x / W) * 100}%`, top: `${(GOAL.y / H) * 100}%`, width: `${(GOAL.w / W) * 100}%`, height: `${(GOAL.h / H) * 100}%` };
   return (
     <div className="relative w-full select-none" style={{ aspectRatio: `${W} / ${H}` }}>
-      <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 w-full h-full">
+      <div ref={host} className="absolute inset-0" aria-hidden />
+      <svg viewBox={`0 0 ${W} ${H}`} className={`absolute inset-0 w-full h-full ${mouth ? "hidden" : ""}`}>
         <defs>
           <pattern id="net" width="10" height="10" patternUnits="userSpaceOnUse">
             <path d="M0 0 L10 10 M10 0 L0 10" stroke="#fff" strokeOpacity="0.35" strokeWidth="0.8" />
@@ -82,10 +120,7 @@ function Goal({ onPick, picked, disabled, reveal, kickKey, role }) {
       </svg>
       {/* The 3 directions, as buttons over the goal mouth. */}
       {!showReveal && (
-        <div
-          className="absolute grid grid-cols-3 gap-1"
-          style={{ left: `${(GOAL.x / W) * 100}%`, top: `${(GOAL.y / H) * 100}%`, width: `${(GOAL.w / W) * 100}%`, height: `${(GOAL.h / H) * 100}%` }}
-        >
+        <div className="absolute grid grid-cols-3 gap-1" style={box}>
           {SPOT_NAMES.map((name, i) => (
             <motion.button
               key={name}
@@ -98,9 +133,11 @@ function Goal({ onPick, picked, disabled, reveal, kickKey, role }) {
                 picked === i ? "bg-[#FACC15]/70 border-[#FACC15] text-black" : disabled ? "border-transparent text-white/0" : "border-white/40 border-dashed hover:bg-white/15 text-white"
               } flex items-end justify-center pb-1.5 text-xs font-extrabold uppercase tracking-wider`}
             >
-              {["← ", "", ""][i]}
-              {name}
-              {["", "", " →"][i]}
+              <span className={`px-2 py-0.5 rounded-full ${picked === i ? "" : "bg-black/55"}`}>
+                {["← ", "", ""][i]}
+                {name}
+                {["", "", " →"][i]}
+              </span>
             </motion.button>
           ))}
         </div>
