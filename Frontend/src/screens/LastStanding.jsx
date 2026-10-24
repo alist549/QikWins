@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Skull, Trophy, Users } from "lucide-react";
+import WinUpTo from "../components/WinUpTo";
 import Page from "../components/Page";
 import StakeChips from "../components/StakeChips";
 import GameArt from "../components/GameArt";
@@ -43,11 +44,35 @@ function Crowd({ players }) {
   );
 }
 
-// Last Standing: a knockout where only the side fewer people pick survives.
-function LastStanding() {
+// A big table as one number: how many are still in, with a bar.
+function BigCrowd({ alive, total, label }) {
+  return (
+    <div className="rounded-2xl bg-black/25 p-3 text-white">
+      <div className="flex items-baseline justify-between">
+        <span className="text-4xl font-black tabular">{alive.toLocaleString()}</span>
+        <span className="text-sm font-bold opacity-80">
+          of {total.toLocaleString()} {label}
+        </span>
+      </div>
+      <div className="mt-2 h-3 rounded-full bg-white/20 overflow-hidden">
+        <motion.div className="h-full rounded-full bg-gradient-to-r from-[#FDE047] to-[#F97316]" animate={{ width: `${(alive / total) * 100}%` }} transition={{ duration: 0.8 }} />
+      </div>
+    </div>
+  );
+}
+
+// Last Standing and Mega Jackpot: knockouts where only the side fewer people
+// pick survives. Mega Jackpot is the same game at 2,500 seats.
+const META = {
+  "last-standing": { title: "Last Standing", art: "last-standing", rules: "lastStanding", tone: "from-[#7F1D1D] via-[#B91C1C] to-[#F97316]", button: "from-[#B91C1C] to-[#F97316]", cta: "Join the knockout" },
+  mega: { title: "Mega Jackpot", art: "mega", rules: "mega", tone: "from-[#713F12] via-[#CA8A04] to-[#F97316]", button: "from-[#CA8A04] via-[#F97316] to-[#DB2777]", cta: "Play for the jackpot" },
+};
+
+function LastStanding({ game = "last-standing" }) {
+  const meta = META[game];
   const { user, token, ready } = useSession();
   const rules = useRules();
-  const [state, setState] = usePersonal("last-standing");
+  const [state, setState] = usePersonal(game);
   const [stake, setStake] = useState(100);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -87,21 +112,21 @@ function LastStanding() {
     }
   };
 
-  const seats = rules?.lastStanding?.seats ?? 32;
-  const fee = rules?.lastStanding?.feeRate ?? 0.1;
+  const seats = rules?.[meta.rules]?.seats ?? (game === "mega" ? 2500 : 32);
+  const fee = rules?.[meta.rules]?.feeRate ?? 0.1;
   const topWin = (s) => s * seats - Math.floor((seats - 1) * s * fee);
   const me = table?.you;
   const last = table?.last;
 
   return (
-    <Page title="Last Standing" back="/" track={status === "idle" ? "lobby" : "game"}>
+    <Page title={meta.title} back="/" track={status === "idle" ? "lobby" : "game"}>
       {status === "idle" && (
         <div className="flex flex-col gap-4 animate-sheet-up">
           <div className="relative h-52 rounded-[28px] overflow-hidden shadow-float">
-            <GameArt game="last-standing" />
+            <GameArt game={meta.art} />
           </div>
           <div className="text-center">
-            <div className="text-2xl font-extrabold tracking-tight">Outlast {seats - 1} players.</div>
+            <div className="text-2xl font-extrabold tracking-tight">Outlast {(seats - 1).toLocaleString()} players.</div>
             <div className="text-sm text-muted">Each round, only the side fewer people pick survives</div>
           </div>
           {rules && <StakeChips chips={rules.stakeChips} value={stake} onChange={setStake} disabled={busy} />}
@@ -111,16 +136,17 @@ function LastStanding() {
             disabled={busy}
             onClick={() => {
               sfx("join");
-              act("/games/last-standing/join", { stake });
+              act(`/games/${game}/join`, { stake });
             }}
-            className="relative overflow-hidden qw-shine h-16 rounded-full bg-gradient-to-r from-[#B91C1C] to-[#F97316] text-white text-xl font-extrabold shadow-float disabled:opacity-50"
+            className={`relative overflow-hidden qw-shine h-16 rounded-full bg-gradient-to-r ${meta.button} text-white text-xl font-extrabold shadow-float disabled:opacity-50`}
           >
-            Join the knockout · {money(stake)}
+            {meta.cta} · {money(stake)}
           </motion.button>
-          <div className="text-center text-sm font-bold">
-            Last one standing wins <span className="text-[#F97316]">{money(topWin(stake))}</span>
-            <span className="text-muted font-medium"> · about {Math.round(topWin(stake) / stake)}x</span>
-          </div>
+          <WinUpTo
+            amount={topWin(stake)}
+            label={game === "mega" ? `Jackpot from ${money(stake)}` : "Take it all"}
+            note={`Be the last one standing: about ${Math.round(topWin(stake) / stake).toLocaleString()}x your stake`}
+          />
         </div>
       )}
 
@@ -132,11 +158,17 @@ function LastStanding() {
               <Counter value={table.pot} />
             </div>
             <div className="text-sm font-bold text-muted">
-              {table.seated}/{table.seatsTotal} in · starts when full
+              {table.seated.toLocaleString()}/{table.seatsTotal.toLocaleString()} in · starts when full
             </div>
           </div>
-          <Crowd players={[...table.players, ...Array.from({ length: table.seatsTotal - table.players.length }, () => null)].map((p) => p || { empty: true })} />
-          <button type="button" disabled={busy} onClick={() => act("/games/last-standing/leave")} className="self-center h-11 px-6 rounded-full border border-line font-bold">
+          {table.players ? (
+            <Crowd players={[...table.players, ...Array.from({ length: table.seatsTotal - table.players.length }, () => null)].map((p) => p || { empty: true })} />
+          ) : (
+            <div className={`rounded-[28px] p-4 bg-gradient-to-br ${meta.tone}`}>
+              <BigCrowd alive={table.seated} total={table.seatsTotal} label="seats filled" />
+            </div>
+          )}
+          <button type="button" disabled={busy} onClick={() => act(`/games/${game}/leave`)} className="self-center h-11 px-6 rounded-full border border-line font-bold">
             Leave and refund
           </button>
         </div>
@@ -144,10 +176,10 @@ function LastStanding() {
 
       {(status === "picking" || status === "reveal" || status === "done") && table && (
         <div className="flex flex-col gap-4">
-          <div className="rounded-[28px] p-4 text-white shadow-float bg-gradient-to-br from-[#7F1D1D] via-[#B91C1C] to-[#F97316]">
+          <div className={`rounded-[28px] p-4 text-white shadow-float bg-gradient-to-br ${meta.tone}`}>
             <div className="flex items-center justify-between gap-2 text-sm font-extrabold whitespace-nowrap">
               <span className="h-8 px-3 rounded-full bg-black/25 inline-flex items-center gap-1.5">
-                <Users size={14} /> {table.alive}/{table.seated} left
+                <Users size={14} /> {table.players ? `${table.alive}/${table.seated}` : table.alive.toLocaleString()} left
               </span>
               <span className="h-8 px-3 rounded-full bg-white text-black inline-flex items-center">
                 <Counter value={table.pot} />
@@ -162,7 +194,7 @@ function LastStanding() {
               </span>
             </div>
             <div className="mt-3">
-              <Crowd players={table.players} />
+              {table.players ? <Crowd players={table.players} /> : <BigCrowd alive={table.alive} total={table.seated} label="still standing" />}
             </div>
           </div>
 
@@ -179,7 +211,7 @@ function LastStanding() {
                     animate={me?.pick === side ? { scale: 1.04 } : { scale: 1 }}
                     onClick={() => {
                       sfx("hit");
-                      act("/games/last-standing/pick", { side });
+                      act(`/games/${game}/pick`, { side });
                     }}
                     className={`h-32 rounded-[26px] text-white text-2xl font-extrabold shadow-float disabled:cursor-default bg-gradient-to-br ${
                       i === 0 ? "from-[#7C3AED] to-[#4338CA]" : "from-[#EC4899] to-[#BE123C]"
@@ -211,7 +243,7 @@ function LastStanding() {
                         <span>
                           {last.question[i]} {safe ? "· survives" : "· out"}
                         </span>
-                        <span className="tabular">{n}</span>
+                        <span className="tabular">{n.toLocaleString()}</span>
                       </div>
                     </div>
                   );
@@ -254,8 +286,8 @@ function LastStanding() {
                 type="button"
                 disabled={busy}
                 onClick={async () => {
-                  await act("/games/last-standing/dismiss");
-                  await act("/games/last-standing/join", { stake: table.stake });
+                  await act(`/games/${game}/dismiss`);
+                  await act(`/games/${game}/join`, { stake: table.stake });
                 }}
                 className="mt-4 h-12 px-6 rounded-full bg-white text-black font-extrabold"
               >
@@ -264,7 +296,7 @@ function LastStanding() {
             </div>
           )}
           {me?.out && status !== "done" && (
-            <button type="button" onClick={() => act("/games/last-standing/dismiss")} className="self-center h-10 px-5 rounded-full border border-line text-sm font-bold">
+            <button type="button" onClick={() => act(`/games/${game}/dismiss`)} className="self-center h-10 px-5 rounded-full border border-line text-sm font-bold">
               Leave and start a new one
             </button>
           )}
@@ -276,7 +308,7 @@ function LastStanding() {
           {error}
         </p>
       )}
-      {burst && <WinBurst amount={burst} label="Last one standing!" />}
+      {burst && <WinBurst amount={burst} label={game === "mega" ? "Jackpot!" : "You took the pot!"} />}
     </Page>
   );
 }

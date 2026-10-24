@@ -4,7 +4,6 @@ const { STANDING, COMMON } = require("../config/games");
 const { GameError } = require("./hopOff");
 const { seatBot } = require("../services/bots");
 
-const GAME = "last-standing";
 
 // Last Standing, a knockout at one stake:
 //   waiting: seats fill with players at the same stake
@@ -13,7 +12,13 @@ const GAME = "last-standing";
 //            not picking knocks you out)
 //   done:    after one player is left, or MAX_ROUNDS, the survivors share
 //            every stake, less a fee from the knocked-out players' stakes
+//
+// The same engine runs Mega Jackpot (config.GAME "mega"): thousands of seats,
+// so the view sends counts instead of every player, and practice players
+// arrive in batches.
 function createLastStanding({ store, publish = () => {}, notify = () => {}, config = STANDING, now = Date.now, autoRun = true }) {
+  const GAME = config.GAME || "last-standing";
+  const LIST_LIMIT = 64;
   const filling = new Map(); // stake -> table
   const tables = new Map(); // id -> table
   const byUser = new Map(); // userId -> table id
@@ -71,14 +76,14 @@ function createLastStanding({ store, publish = () => {}, notify = () => {}, conf
         // Live pick counts stay hidden until the reveal.
         last: last || null,
         you: me ? { name: me.name, pick: me.pick, out: Boolean(me.outAt), outAt: me.outAt, payout: table.phase === "done" ? me.payout : null } : null,
-        players: table.seats.map((s) => ({ name: s.name, you: s.userId === key, out: Boolean(s.outAt) })),
+        players: config.SEATS <= LIST_LIMIT ? table.seats.map((s) => ({ name: s.name, you: s.userId === key, out: Boolean(s.outAt) })) : null,
         result: table.result,
       },
     };
   }
 
-  const tell = (table) => table.seats.forEach((s) => !s.bot && notify(s.userId, "last-standing:state", view(s.userId)));
-  const announce = () => publish("last-standing:lobby", lobby());
+  const tell = (table) => table.seats.forEach((s) => !s.bot && notify(s.userId, `${GAME}:state`, view(s.userId)));
+  const announce = () => publish(`${GAME}:lobby`, lobby());
 
   async function join(userId, { stake }) {
     const key = String(userId);
@@ -128,7 +133,8 @@ function createLastStanding({ store, publish = () => {}, notify = () => {}, conf
   }
 
   async function fillWithBots(table) {
-    while (table.phase === "waiting" && table.seats.length < config.SEATS) {
+    const target = config.BOT_BATCH ? Math.min(config.SEATS, table.seats.length + config.BOT_BATCH) : config.SEATS;
+    while (table.phase === "waiting" && table.seats.length < target) {
       const bot = await seatBot(store, table.stake);
       if (!bot || table.phase !== "waiting" || !tables.has(table.id)) {
         if (bot) await store.credit(bot.userId, table.stake);
@@ -138,6 +144,7 @@ function createLastStanding({ store, publish = () => {}, notify = () => {}, conf
       byUser.set(bot.userId, table.id);
       if (table.seats.length >= config.SEATS) startRound(table);
     }
+    if (table.phase === "waiting" && config.BOT_BATCH) later(`fill:${table.id}`, () => fillWithBots(table), config.BOT_BATCH_MS);
     tell(table);
     announce();
   }

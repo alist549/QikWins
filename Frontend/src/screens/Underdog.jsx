@@ -145,7 +145,7 @@ function Underdog() {
           </p>
         )}
       </div>
-      {burst && <WinBurst amount={burst} />}
+      {burst && <WinBurst amount={burst} label="Big win!" />}
     </Page>
   );
 }

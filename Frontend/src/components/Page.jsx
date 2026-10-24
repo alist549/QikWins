@@ -1,15 +1,31 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { ArrowLeft, Volume2, VolumeX, Wallet } from "lucide-react";
 import Logo from "./Logo";
 import BottomNav from "./BottomNav";
+import GameRail from "./GameRail";
+import BigWinsFeed from "./BigWinsFeed";
+import JackpotCard from "./JackpotCard";
 import { useSession } from "../contexts/SessionContext";
 import Counter from "./Counter";
 import { setSoundEnabled, useSoundEnabled, useTrack } from "../lib/sound";
 
-// Every screen: a phone-width column, the demo notice, a header with the back
-// arrow (inner screens) or the logo, the balance, and the tab bar.
+const DESKTOP_LINKS = [
+  ["/", "Lobby"],
+  ["/play/mega-jackpot", "Jackpot"],
+  ["/fair", "Results"],
+  ["/why", "Why QikWins"],
+  ["/play-safe", "Account"],
+];
+
+// Every screen: the demo notice, a header with the back arrow (inner screens)
+// or the logo, the balance, and the tab bar. On a phone it's one column. On a
+// desktop the header carries the links, and `layout` picks the body:
+//   "wide": the full width (the lobby lays itself out),
+//   "game": the game list on the left, the game in the middle and live wins
+//           and the jackpot on the right,
+//   "narrow": one centred column (forms and settings).
 // `track` is the background music for the screen ("lobby" or "game").
-function Page({ title, back, children, nav = true, track = "lobby" }) {
+function Page({ title, back, children, nav = true, track = "lobby", layout = "game" }) {
   const navigate = useNavigate();
   const { user } = useSession();
   const sound = useSoundEnabled();
@@ -17,10 +33,10 @@ function Page({ title, back, children, nav = true, track = "lobby" }) {
   return (
     <div className="min-h-[100dvh] flex flex-col">
       <div className="bg-gradient-to-r from-[#7C3AED] via-[#EC4899] to-[#F97316] text-white text-center text-[11px] font-bold tracking-wide py-1 px-4">DEMO · PRACTICE MONEY · 18+</div>
-      <div className="w-full max-w-md mx-auto px-4 flex-1 flex flex-col">
-        <header className="h-14 flex items-center justify-between gap-3">
+      <div className="w-full max-w-md lg:max-w-[1440px] mx-auto px-4 lg:px-8 flex-1 flex flex-col">
+        <header className="h-14 lg:h-20 flex items-center justify-between gap-3">
           {back ? (
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0 lg:hidden">
               <button
                 type="button"
                 aria-label="Back"
@@ -32,10 +48,27 @@ function Page({ title, back, children, nav = true, track = "lobby" }) {
               <h1 className="text-base font-bold truncate">{title}</h1>
             </div>
           ) : (
-            <Link to="/" aria-label="QikWins home">
+            <Link to="/" aria-label="QikWins home" className="lg:hidden">
               <Logo size="sm" />
             </Link>
           )}
+          <div className="hidden lg:flex items-center gap-8">
+            <Link to="/" aria-label="QikWins home">
+              <Logo size="sm" />
+            </Link>
+            <nav className="flex items-center gap-1">
+              {DESKTOP_LINKS.map(([to, label]) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={to === "/"}
+                  className={({ isActive }) => `h-10 px-4 rounded-full inline-flex items-center text-sm font-bold transition ${isActive ? "bg-fg text-bg" : "hover:bg-surface"}`}
+                >
+                  {label === "Jackpot" ? <span className="text-[#F97316]">🔥 {label}</span> : label}
+                </NavLink>
+              ))}
+            </nav>
+          </div>
           <div className="flex items-center gap-2">
           <button
             type="button"
@@ -60,9 +93,34 @@ function Page({ title, back, children, nav = true, track = "lobby" }) {
           )}
           </div>
         </header>
-        <main className="flex-1 flex flex-col pb-6">{children}</main>
+        {layout === "game" ? (
+          <div className="flex-1 lg:grid lg:grid-cols-[250px_minmax(0,1fr)_300px] lg:gap-8 lg:pt-2">
+            <aside className="hidden lg:block">
+              <div className="sticky top-4">
+                <GameRail />
+              </div>
+            </aside>
+            <main className="flex-1 flex flex-col pb-6 w-full lg:max-w-[720px] lg:mx-auto">
+              {title && <h1 className="hidden lg:block text-4xl font-black tracking-tight mb-4">{title}</h1>}
+              {children}
+            </main>
+            <aside className="hidden lg:flex flex-col gap-4">
+              <JackpotCard />
+              <BigWinsFeed />
+            </aside>
+          </div>
+        ) : (
+          <main className={`flex-1 flex flex-col pb-6 lg:pb-12 ${layout === "narrow" ? "w-full lg:max-w-2xl lg:mx-auto lg:pt-6" : ""}`}>
+            {title && layout === "narrow" && <h1 className="hidden lg:block text-4xl font-black tracking-tight mb-4">{title}</h1>}
+            {children}
+          </main>
+        )}
       </div>
-      {nav && <BottomNav />}
+      {nav && (
+        <div className="lg:hidden">
+          <BottomNav />
+        </div>
+      )}
     </div>
   );
 }

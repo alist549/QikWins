@@ -131,7 +131,7 @@ function HopOff() {
 
       {/* The stage: the sky (PixiJS), then the route of cities. */}
       <div className={`relative mt-3 rounded-[28px] overflow-hidden bg-gradient-to-br from-[#0050C8] via-[#007DFE] to-[#00B4FF] shadow-float ${caughtMe ? "qw-shake" : ""}`}>
-        <div className="h-52">
+        <div className="h-52 lg:h-80">
           <PixiCanvas
             scene={flightScene}
             label={phase === "riding" ? `Flying over ${skin.stops[(state?.stop || 1) - 1]}` : "The jet is waiting to take off"}
@@ -304,7 +304,7 @@ function HopOff() {
         )}
       </div>
       {info && <HowItWorks feeRate={state?.feeRate ?? 0.1} onClose={() => setInfo(false)} />}
-      {burst && <WinBurst amount={burst} />}
+      {burst && <WinBurst amount={burst} label="Big win!" />}
     </Page>
   );
 }

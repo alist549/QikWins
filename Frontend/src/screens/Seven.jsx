@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Crown, Dices } from "lucide-react";
+import WinUpTo from "../components/WinUpTo";
 import Page from "../components/Page";
 import StakeChips from "../components/StakeChips";
 import GameArt from "../components/GameArt";
@@ -90,10 +91,7 @@ function Seven() {
           >
             Take a seat · {money(stake)}
           </button>
-          <div className="text-center text-sm font-bold">
-            Win <span className="text-[#FF2D55]">{money(winAmount(stake))}</span> back
-            <span className="text-muted font-medium"> · 10% fee from the other 7 stakes</span>
-          </div>
+          <WinUpTo amount={winAmount(stake)} label="Take the table" note="10% fee from the other 7 stakes" />
         </div>
       )}
 
@@ -217,7 +215,7 @@ function Seven() {
           {error}
         </p>
       )}
-      {burst && <WinBurst amount={burst} label="7x!" />}
+      {burst && <WinBurst amount={burst} label="You took the table!" />}
     </Page>
   );
 }

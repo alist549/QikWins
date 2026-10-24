@@ -17,7 +17,7 @@ let seq = 0;
 
 async function seatBot(store, stake) {
   seq += 1;
-  const n = seq % 200;
+  const n = seq % 5000; // enough distinct players for a Mega Jackpot table
   const phone = `+1999000${String(n).padStart(4, "0")}`;
   let bot = await store.findUserByPhone(phone);
   const name = NAMES[n % NAMES.length];

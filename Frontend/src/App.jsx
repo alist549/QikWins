@@ -26,6 +26,7 @@ function App() {
         <Route path="/play/seven" element={<Seven />} />
         <Route path="/play/big-wheel" element={<BigWheel />} />
         <Route path="/play/last-standing" element={<LastStanding />} />
+        <Route path="/play/mega-jackpot" element={<LastStanding game="mega" />} />
         <Route path="/play/penalties" element={<Penalties />} />
         <Route path="/fair" element={<Fairness />} />
         <Route path="/play-safe" element={<PlaySafe />} />

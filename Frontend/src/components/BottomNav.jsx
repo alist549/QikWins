@@ -4,7 +4,7 @@ import { Gamepad2, House, ShieldCheck, UserRound } from "lucide-react";
 // App-style tab bar on every main screen.
 const TABS = [
   { to: "/", label: "Lobby", Icon: House, end: true },
-  { to: "/play/big-wheel", label: "Play", Icon: Gamepad2 },
+  { to: "/play/mega-jackpot", label: "Jackpot", Icon: Gamepad2 },
   { to: "/fair", label: "Results", Icon: ShieldCheck },
   { to: "/play-safe", label: "Account", Icon: UserRound },
 ];

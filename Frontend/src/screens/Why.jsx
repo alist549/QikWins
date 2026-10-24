@@ -14,7 +14,7 @@ const POINTS = [
 function Why() {
   const { user } = useSession();
   return (
-    <Page title="Why QikWins" back="/">
+    <Page title="Why QikWins" back="/" layout="narrow">
       <h2 className="pt-2 text-[34px] leading-[1.02] font-extrabold tracking-[-0.04em]">
         The house never plays.
         <br />

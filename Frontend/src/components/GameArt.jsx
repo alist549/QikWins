@@ -1,7 +1,12 @@
 // Animated cover art for every game tile and banner. Plain SVG + CSS
 // (index.css "Game motion"), so it costs a few KB, not images.
+import { useId } from "react";
 
-function Bg({ id, from, to }) {
+// Gradient ids are made unique per copy: the same art can be on the page
+// twice (a tile and the desktop game list), and a hidden copy's gradient
+// would otherwise blank the visible one.
+function Bg({ id: name, from, to }) {
+  const id = `${name}${useId().replace(/:/g, "")}`;
   return (
     <>
       <defs>
@@ -303,7 +308,39 @@ function BigWheel() {
   );
 }
 
+function Mega() {
+  const coins = [
+    [30, 158, 0], [62, 164, 0.4], [138, 164, 0.8], [170, 158, 1.2],
+  ];
+  return (
+    <svg viewBox="0 0 200 200" className="w-full h-full">
+      <Bg id="g-mega" from="#78350F" to="#F59E0B" />
+      <g className="qw-spin" style={{ animationDuration: "18s" }} opacity="0.35">
+        {Array.from({ length: 12 }, (_, i) => (
+          <polygon key={i} points="100,92 94,-20 106,-20" fill="#FEF3C7" transform={`rotate(${i * 30} 100 92)`} />
+        ))}
+      </g>
+      <g className="qw-bob">
+        <path d="M58 92 L70 52 L88 76 L100 40 L112 76 L130 52 L142 92 Z" fill="#FDE047" stroke="#0A0A0A" strokeWidth="3" strokeLinejoin="round" />
+        <rect x="58" y="90" width="84" height="14" rx="4" fill="#FACC15" stroke="#0A0A0A" strokeWidth="3" />
+        <circle cx="100" cy="40" r="6" fill="#EC4899" stroke="#0A0A0A" strokeWidth="2" />
+        <circle cx="70" cy="52" r="5" fill="#22D3EE" stroke="#0A0A0A" strokeWidth="2" />
+        <circle cx="130" cy="52" r="5" fill="#22D3EE" stroke="#0A0A0A" strokeWidth="2" />
+      </g>
+      {coins.map(([x, y, d]) => (
+        <g key={x + "-" + y} className="qw-pulse" style={{ animationDelay: `${d}s` }}>
+          <circle cx={x} cy={y} r="13" fill="#FACC15" stroke="#92400E" strokeWidth="3" />
+          <text x={x} y={y + 5} textAnchor="middle" fontSize="14" fontWeight="900" fill="#92400E">$</text>
+        </g>
+      ))}
+      <text x="100" y="138" textAnchor="middle" fontSize="24" fontWeight="900" fill="#fff" stroke="#0A0A0A" strokeWidth="1">JACKPOT</text>
+      <text x="100" y="190" textAnchor="middle" fontSize="11" fontWeight="800" fill="#fff" opacity="0.95">$1 IN · LAST ONE TAKES ALL</text>
+    </svg>
+  );
+}
+
 export const ART = {
+  mega: Mega,
   "big-wheel": BigWheel,
   seven: Seven,
   double: Double,

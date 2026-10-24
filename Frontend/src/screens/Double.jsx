@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
+import WinUpTo from "../components/WinUpTo";
 import Page from "../components/Page";
 import StakeChips from "../components/StakeChips";
 import GameArt from "../components/GameArt";
@@ -116,7 +117,7 @@ function Double() {
           >
             Find opponent · {money(stake)}
           </button>
-          <div className="text-center text-xs text-muted">Win {money(stake * 2 - Math.floor(stake * (rules?.double?.feeRate ?? 0.1)))} back · 10% fee from the loser&apos;s stake</div>
+          <WinUpTo amount={stake * 2 - Math.floor(stake * (rules?.double?.feeRate ?? 0.1))} label="Win" note="Beat one player · 10% fee from the loser's stake" />
         </div>
       )}
 

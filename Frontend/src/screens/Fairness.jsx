@@ -7,6 +7,7 @@ import { SEGMENTS } from "../scenes/wheel";
 
 const TABS = [
   ["big-wheel", "Big Wheel"],
+  ["mega", "Mega Jackpot"],
   ["last-standing", "Last Standing"],
   ["penalties", "Penalties"],
   ["seven", "7x"],
@@ -163,6 +164,7 @@ function PenaltyRound({ r }) {
 
 const ROUND = {
   "big-wheel": WheelRound,
+  mega: StandingRound,
   penalties: PenaltyRound,
   "last-standing": StandingRound, "hop-off": HopOffRound, underdog: UnderdogRound, double: DoubleRound, seven: SevenRound };
 
@@ -246,7 +248,7 @@ function Fairness() {
   }, [tab]);
 
   return (
-    <Page title="Results log" back="/">
+    <Page title="Results log" back="/" layout="narrow">
       <p className="text-muted">
         Every finished round, with the pool, the fee and every payout. For Hop Off, the checkpoint&apos;s fingerprint (hash) is shown before boarding; the seed is revealed after, so you
         can check nothing changed.

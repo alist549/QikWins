@@ -33,7 +33,7 @@ function SignIn() {
   };
 
   return (
-    <Page title="Play the demo" back="/">
+    <Page title="Play the demo" back="/" layout="narrow">
       <form onSubmit={submit} className="pt-2 flex flex-col gap-4 animate-sheet-up">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Get $100 of practice money</h2>

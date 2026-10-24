@@ -107,6 +107,19 @@ const STANDING = {
   QUESTIONS: UNDERDOG.QUESTIONS,
 };
 
+// Mega Jackpot: Last Standing with 2,500 seats. The last one standing at
+// $1 takes $2,500 less the 10% fee on the other 2,499 stakes: $2,250.10.
+// Survivors share it if more than one is left after MAX_ROUNDS.
+const MEGA = {
+  ...STANDING,
+  GAME: "mega",
+  SEATS: num(process.env.MEGA_SEATS, 2500),
+  MAX_ROUNDS: 16,
+  BOT_WAIT_MS: num(process.env.MEGA_BOT_WAIT_MS, 3000),
+  BOT_BATCH: 300,
+  BOT_BATCH_MS: num(process.env.MEGA_BOT_BATCH_MS, 1500),
+};
+
 // Penalties: shootouts between real players. The striker shoots left,
 // centre or right and the keeper dives one way (a match is a save). Players
 // swap between striker and keeper every kick, KICKS_EACH each, then sudden
@@ -128,4 +141,4 @@ const PENALTY = {
   BOTS: PRACTICE_PLAYERS,
 };
 
-module.exports = { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, STANDING, PENALTY };
+module.exports = { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, STANDING, MEGA, PENALTY };

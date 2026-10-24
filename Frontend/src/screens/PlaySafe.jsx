@@ -31,7 +31,7 @@ function PlaySafe() {
   const paused = user.excludedUntil && new Date(user.excludedUntil) > new Date();
 
   return (
-    <Page title="Your account and play safe" back="/">
+    <Page title="Your account and play safe" back="/" layout="narrow">
       <div className="rounded-3xl bg-surface p-5">
         <div className="text-sm text-muted">Practice balance</div>
         <div className="text-[34px] font-extrabold tracking-tight tabular">{money(user.balance)}</div>

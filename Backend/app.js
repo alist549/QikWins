@@ -4,7 +4,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const asyncHandler = require("express-async-handler");
 const { body, validationResult } = require("express-validator");
-const { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, STANDING, PENALTY } = require("./config/games");
+const { COMMON, HOP_OFF, UNDERDOG, DOUBLE, SEVEN, WHEEL, STANDING, MEGA, PENALTY } = require("./config/games");
 const { normalizePhone } = require("./utils/phone");
 const { signToken, requireUser, optionalUser } = require("./middlewares/auth");
 const { GameError } = require("./games/hopOff");
@@ -14,7 +14,7 @@ const fair = require("./services/fair");
 // out over Socket.IO (socket.js).
 // With `webDir` (the built website), the same server also serves the site,
 // so one free web service runs everything (see render.yaml).
-function createApp({ store, hopOff, underdog, double, seven, wheel, standing, penalties, webDir }) {
+function createApp({ store, hopOff, underdog, double, seven, wheel, standing, mega, penalties, webDir }) {
   const app = express();
   if (process.env.ENVIRONMENT !== "test") app.use(morgan("dev"));
   app.use(cors());
@@ -59,6 +59,7 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, standing, pe
       bigWheel: { feeRate: WHEEL.FEE_RATE, segments: WHEEL.SEGMENTS, openMs: WHEEL.OPEN_MS, spinMs: WHEEL.SPIN_MS },
       penalties: { feeRate: PENALTY.FEE_RATE, spots: PENALTY.SPOTS, kicksEach: PENALTY.KICKS_EACH, kickMs: PENALTY.KICK_MS, cupSeats: PENALTY.CUP_SEATS },
       lastStanding: { feeRate: STANDING.FEE_RATE, seats: STANDING.SEATS, pickMs: STANDING.PICK_MS, maxRounds: STANDING.MAX_ROUNDS },
+      mega: { feeRate: MEGA.FEE_RATE, seats: MEGA.SEATS, pickMs: MEGA.PICK_MS, maxRounds: MEGA.MAX_ROUNDS },
     })
   );
 
@@ -143,13 +144,15 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, standing, pe
     );
   }
 
-  // Last Standing: a knockout where only the smaller side survives.
-  if (standing) {
-    app.get("/games/last-standing", maybe, (req, res) => res.json(standing.state(req.userId)));
-    app.post("/games/last-standing/join", auth, play((req) => standing.join(req.user.id, { stake: Number(req.body.stake) })));
-    app.post("/games/last-standing/leave", auth, play((req) => standing.leave(req.user.id)));
-    app.post("/games/last-standing/pick", auth, play(async (req) => standing.pick(req.user.id, req.body.side)));
-    app.post("/games/last-standing/dismiss", auth, play(async (req) => standing.dismiss(req.user.id)));
+  // Last Standing (a knockout where only the smaller side survives) and Mega
+  // Jackpot share one engine and the same routes.
+  for (const [id, game] of [["last-standing", standing], ["mega", mega]]) {
+    if (!game) continue;
+    app.get(`/games/${id}`, maybe, (req, res) => res.json(game.state(req.userId)));
+    app.post(`/games/${id}/join`, auth, play((req) => game.join(req.user.id, { stake: Number(req.body.stake) })));
+    app.post(`/games/${id}/leave`, auth, play((req) => game.leave(req.user.id)));
+    app.post(`/games/${id}/pick`, auth, play(async (req) => game.pick(req.user.id, req.body.side)));
+    app.post(`/games/${id}/dismiss`, auth, play(async (req) => game.dismiss(req.user.id)));
   }
 
   // Penalties: a 1 v 1 duel or a 16-player cup.
@@ -164,7 +167,7 @@ function createApp({ store, hopOff, underdog, double, seven, wheel, standing, pe
 
   // The public settlement log.
   app.get(
-    "/rounds/:game(hop-off|underdog|double|seven|big-wheel|last-standing|penalties)",
+    "/rounds/:game(hop-off|underdog|double|seven|big-wheel|last-standing|mega|penalties)",
     asyncHandler(async (req, res) => {
       const limit = Math.min(Number(req.query.limit) || 20, 100);
       res.json({ rounds: await store.listRounds(req.params.game, limit) });

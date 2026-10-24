@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Swords, Trophy, Wallet } from "lucide-react";
+import WinUpTo from "../components/WinUpTo";
 import Page from "../components/Page";
 import StakeChips from "../components/StakeChips";
 import GameArt from "../components/GameArt";
@@ -155,6 +156,11 @@ function Penalties() {
             {mode === "cup" ? "Win a shootout to go through. After each round, cash out or play on for double." : "Take turns to shoot and keep. 3 kicks each, then sudden death."}
           </div>
           {rules && <StakeChips chips={rules.stakeChips} value={stake} onChange={setStake} disabled={busy} />}
+          <WinUpTo
+            amount={mode === "cup" ? cupWin : duelWin}
+            label={mode === "cup" ? "Win up to" : "Win"}
+            note={mode === "cup" ? "Lift the cup, or cash out after any round" : "Win the shootout · 10% fee from the loser's stake"}
+          />
           <motion.button
             type="button"
             whileTap={{ scale: 0.97 }}

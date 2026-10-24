@@ -75,7 +75,7 @@ function BigWheel() {
     <Page title="Big Wheel" back="/" track="game">
       {/* The stage */}
       <div className="relative rounded-[28px] overflow-hidden bg-[radial-gradient(circle_at_50%_40%,#4C1D95,#1E1B4B_70%)] shadow-float">
-        <div className="h-[19rem]">
+        <div className="h-[19rem] lg:h-[26rem]">
           <PixiCanvas scene={scene} label="The Big Wheel" props={{ phase, winning: win, selected: segment, spinMs: rules?.bigWheel?.spinMs }} />
         </div>
         <div className="absolute top-3 left-3 right-3 flex justify-between z-10 pointer-events-none">
@@ -194,7 +194,7 @@ function BigWheel() {
           </div>
         )}
       </div>
-      {burst && <WinBurst amount={burst} label="Big win!" />}
+      {burst && <WinBurst amount={burst} label="Winner!" />}
     </Page>
   );
 }
