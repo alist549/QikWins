@@ -27,7 +27,7 @@ A knockout for 32 players at one stake. Each round asks a two-way question with 
 
 ### Penalties
 
-Shootouts against real people, picking from 6 spots in the goal (top or bottom, left, middle or right). Players take turns to shoot and keep: the shooter picks a spot, the keeper picks where to dive, and it's saved only if they match. 3 kicks each, then sudden death. Choose how to play:
+Shootouts against real people, picking one of 3 directions: left, centre or right. Players take turns to shoot and keep: the shooter picks a side, the keeper picks which way to dive, and it's saved only if they match. 3 kicks each, then sudden death. Choose how to play:
 
 - **1 v 1**: one shootout, winner takes both stakes less a 10% fee from the loser's stake (about 1.9x).
 - **World Cup**: a 16-player knockout of shootouts. Winning a match adds your opponent's bank (less the fee) to yours. After each round the players still in choose to cash out their bank or play on for double; no answer means cash out. The champion of a full cup gets back about 13x.

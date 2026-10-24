@@ -177,7 +177,7 @@ async function waitFor(fn, timeout = 90000) {
 
   // Penalties: enter the World Cup, shoot and keep, then play on or cash out.
   // A loss before the first cash-out choice re-enters, so the run shows it.
-  const SPOTS = ["Top left", "Top middle", "Top right", "Bottom left", "Bottom middle", "Bottom right"];
+  const SPOTS = ["Left", "Centre", "Right"];
   await page.goto(`${WEB}/play/penalties`);
   await page.getByRole("radio", { name: "$1.00" }).click();
   await shot("penalties-pick-mode");

@@ -251,10 +251,10 @@ function Penalties() {
                     : match.role === "shoot"
                       ? match.picked
                         ? "Locked in. Here we go…"
-                        : "You shoot: pick your spot"
+                        : "You shoot: pick a side"
                       : match.picked
                         ? "Locked in. Dive!"
-                        : "You keep: guess their spot"}
+                        : "You keep: pick a dive"}
                 </span>
                 {match.phase === "aim" && (
                   <span key={seconds} className="tabular qw-count inline-block">
@@ -281,7 +281,7 @@ function Penalties() {
           </div>
           {match.phase === "aim" && match.won == null && (
             <div className="text-center text-xs text-muted">
-              {match.role === "shoot" ? "Tap one of the 6 spots. If the keeper guesses it, it's saved." : "Tap where you'll dive. Guess the spot to save it."}
+              {match.role === "shoot" ? "Shoot left, centre or right. If the keeper dives that way, it's saved." : "Pick which way to dive. Guess their side to save it."}
               {match.opponentPicked && !match.picked && <span className="font-bold text-fg"> {match.opponent.name} is ready!</span>}
             </div>
           )}

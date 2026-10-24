@@ -11,7 +11,7 @@ const randomSpot = (spots) => crypto.randomInt(0, spots);
 //
 // A table fills at one stake and mode, then every round pairs the players
 // still in. A match is a shootout: the players take turns to shoot and keep
-// (KICKS_EACH each, then sudden death). Both pick one of 6 spots at the same
+// (KICKS_EACH each, then sudden death). Both pick left, centre or right at the same
 // time; the keeper saves only by diving to the striker's spot.
 //
 // Money: everyone starts with their stake as their bank. A match winner adds
@@ -255,7 +255,7 @@ function createPenalties({ store, publish = () => {}, notify = () => {}, config 
     const table = tables.get(byUser.get(key));
     const m = table?.matches.find((x) => x.players.some((p) => p.userId === key));
     if (!m || m.phase !== "aim" || m.winner != null) throw new GameError("Not your kick right now.");
-    if (!Number.isInteger(value) || value < 0 || value >= config.SPOTS) throw new GameError("Pick a spot in the goal.");
+    if (!Number.isInteger(value) || value < 0 || value >= config.SPOTS) throw new GameError("Pick left, centre or right.");
     const i = m.players.findIndex((p) => p.userId === key);
     if (m.picks[i] != null) throw new GameError("You've already picked.");
     pickFor(table, m, i, value);

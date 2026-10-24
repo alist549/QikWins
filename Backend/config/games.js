@@ -107,8 +107,8 @@ const STANDING = {
   QUESTIONS: UNDERDOG.QUESTIONS,
 };
 
-// Penalties: shootouts between real players. The goal has 6 spots; the
-// striker picks one and the keeper dives to one (a match is a save). Players
+// Penalties: shootouts between real players. The striker shoots left,
+// centre or right and the keeper dives one way (a match is a save). Players
 // swap between striker and keeper every kick, KICKS_EACH each, then sudden
 // death. Two modes:
 //   duel: 1 v 1; the winner takes both stakes less a fee from the loser's
@@ -116,7 +116,7 @@ const STANDING = {
 //         the fee) to yours; after every round you choose to cash out your
 //         bank or play on. Win all four rounds: about 13x.
 const PENALTY = {
-  SPOTS: 6,
+  SPOTS: 3,
   KICKS_EACH: num(process.env.PENALTY_KICKS_EACH, 3),
   KICK_MS: num(process.env.PENALTY_KICK_MS, 7000),
   REVEAL_MS: num(process.env.PENALTY_REVEAL_MS, 2600),

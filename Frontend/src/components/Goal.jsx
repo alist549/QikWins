@@ -1,18 +1,14 @@
 import { motion } from "motion/react";
 
-// The goal with its 6 spots (top and bottom, left, middle and right), a
-// keeper and a ball. Before a kick the spots are buttons; on the reveal the
-// keeper dives to `dive` and the ball flies to `aim`.
-export const SPOT_NAMES = ["Top left", "Top middle", "Top right", "Bottom left", "Bottom middle", "Bottom right"];
+// The goal with its 3 directions (left, centre and right), a keeper and a
+// ball. Before a kick the directions are buttons; on the reveal the keeper
+// dives to `dive` and the ball flies to `aim`.
+export const SPOT_NAMES = ["Left", "Centre", "Right"];
 
 const W = 320;
 const H = 200;
 const GOAL = { x: 30, y: 30, w: 260, h: 110 };
-const spotCenter = (i) => {
-  const col = i % 3;
-  const row = i < 3 ? 0 : 1;
-  return { x: GOAL.x + (GOAL.w / 3) * (col + 0.5), y: GOAL.y + (GOAL.h / 2) * (row + 0.5) };
-};
+const spotCenter = (i) => ({ x: GOAL.x + (GOAL.w / 3) * (i + 0.5), y: GOAL.y + GOAL.h * 0.45 });
 const BALL_START = { x: W / 2, y: 182 };
 const KEEPER_HOME = { x: W / 2, y: GOAL.y + GOAL.h - 34 };
 
@@ -36,7 +32,7 @@ function Goal({ onPick, picked, disabled, reveal, kickKey, role }) {
   const target = showReveal ? spotCenter(reveal.aim) : null;
   const diveTo = showReveal ? spotCenter(reveal.dive) : KEEPER_HOME;
   const diveDx = diveTo.x - KEEPER_HOME.x;
-  const diveDy = diveTo.y - KEEPER_HOME.y - (reveal?.dive < 3 ? 6 : -10);
+  const diveDy = diveTo.y - KEEPER_HOME.y + (reveal?.dive === 1 ? -6 : 8);
   return (
     <div className="relative w-full select-none" style={{ aspectRatio: `${W} / ${H}` }}>
       <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 w-full h-full">
@@ -84,10 +80,10 @@ function Goal({ onPick, picked, disabled, reveal, kickKey, role }) {
           <path d="M0 -4 L3.8 -1.2 L2.4 3.2 L-2.4 3.2 L-3.8 -1.2 Z" fill="#0A0A0A" />
         </motion.g>
       </svg>
-      {/* The 6 spots, as buttons over the goal mouth. */}
+      {/* The 3 directions, as buttons over the goal mouth. */}
       {!showReveal && (
         <div
-          className="absolute grid grid-cols-3 grid-rows-2 gap-1"
+          className="absolute grid grid-cols-3 gap-1"
           style={{ left: `${(GOAL.x / W) * 100}%`, top: `${(GOAL.y / H) * 100}%`, width: `${(GOAL.w / W) * 100}%`, height: `${(GOAL.h / H) * 100}%` }}
         >
           {SPOT_NAMES.map((name, i) => (
@@ -99,9 +95,13 @@ function Goal({ onPick, picked, disabled, reveal, kickKey, role }) {
               whileTap={{ scale: 0.9 }}
               onClick={() => onPick(i)}
               className={`rounded-lg border-2 transition-colors ${
-                picked === i ? "bg-[#FACC15]/70 border-[#FACC15]" : disabled ? "border-transparent" : "border-white/40 border-dashed hover:bg-white/15"
-              }`}
-            />
+                picked === i ? "bg-[#FACC15]/70 border-[#FACC15] text-black" : disabled ? "border-transparent text-white/0" : "border-white/40 border-dashed hover:bg-white/15 text-white"
+              } flex items-end justify-center pb-1.5 text-xs font-extrabold uppercase tracking-wider`}
+            >
+              {["← ", "", ""][i]}
+              {name}
+              {["", "", " →"][i]}
+            </motion.button>
           ))}
         </div>
       )}
